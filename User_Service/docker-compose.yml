@@ -1,0 +1,53 @@
+services:
+  # Database to store Relational data
+  db-rel:
+    container_name: db-rel-userAuth
+    build: docker
+    volumes:
+      - rel-data:/var/lib/postgresql/shared-data/
+    ports:
+      - "${EXP_PORT_PG_REL}:5435"
+
+  # Mongo Database to store NoSQL data
+  # db-nosql:
+  #   container_name: db-nosql
+  #   image: mongo:4.4.6
+  #   volumes:
+  #     - nosql-data:/data/db
+  #   ports:
+  #     - "${EXP_PORT_MONGO}:27017"
+
+
+  # # Container that runs the API for entities
+  # api-entities:
+  #   container_name: api-entities
+  #   build: docker/images/javascript
+  #   volumes:
+  #     - ./src/api/entities:/usr/src/app
+  #     - ./docker/volumes/xml:/xml
+  #   ports:
+  #     - "${EXT_PORT_API_ENTITIES}:${API_PORT}"
+  #   environment:
+  #     USE_DEV_MODE: ${USE_DEV_MODE}
+  #     PORT: ${API_PORT}
+  #     DATABASE_URL: postgresql://is:is@db-rel:5432/is?schema=public
+
+  # broker:
+  #   container_name: rabbitmq
+  #   image: "rabbitmq:3.12.9-management-alpine"
+  #   environment:
+  #     RABBITMQ_DEFAULT_USER: "$RABBITMQ_DEFAULT_USER"
+  #     RABBITMQ_DEFAULT_PASS: "$RABBITMQ_DEFAULT_PASS"
+  #     RABBITMQ_DEFAULT_VHOST: "$RABBITMQ_DEFAULT_VHOST"
+  #   ports:
+  #     - "5672:5672"   # AMQP protocol port
+  #     - "15672:15672" # management interface port
+  #   healthcheck:
+  #     test: [ "CMD", "rabbitmq-diagnostics", "ping", "-q" ]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 5
+
+volumes:
+  rel-data:
+  #nosql-data:
