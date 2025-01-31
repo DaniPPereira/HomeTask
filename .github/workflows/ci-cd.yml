@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./User_Service  # Define diretório padrão para todos os steps
+        working-directory: ./User_Service
     steps:
       - uses: actions/checkout@v2
       
@@ -47,17 +47,23 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
           
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+          
       - name: Build and push Docker image
-        run: |
-          docker-compose build api
-          docker-compose push api
+        uses: docker/build-push-action@v2
+        with:
+          context: ./User_Service
+          file: ./User_Service/docker/Dockerfile.api
+          push: true
+          tags: ${{ env.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }}
 
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./User_Service  # Define diretório padrão para todos os steps
+        working-directory: ./User_Service
     steps:
       - uses: actions/checkout@v2
       
