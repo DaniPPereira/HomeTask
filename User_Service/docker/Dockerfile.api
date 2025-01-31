@@ -8,7 +8,7 @@ COPY package*.json ./
 # Instalar dependências
 RUN apk add --no-cache python3 make g++ && \
     npm ci --only=production && \
-    npm rebuild bcrypt --build-from-source
+    npm rebuild bcryptjs --build-from-source
 
 # Copiar o resto dos arquivos
 COPY . .
