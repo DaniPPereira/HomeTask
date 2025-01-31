@@ -14,6 +14,12 @@ spec:
       labels:
         app: user-service
     spec:
+      initContainers:
+      - name: check-db-ready
+        image: postgres:16-alpine
+        command: ['sh', '-c', 
+          'until pg_isready -h postgres-service -p 5432; 
+          do echo waiting for database; sleep 2; done;']
       containers:
       - name: user-service
         image: pereira6/user-service:latest
@@ -54,4 +60,10 @@ spec:
             cpu: "100m"
           limits:
             memory: "256Mi"
-            cpu: "200m" 
+            cpu: "200m"
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          failureThreshold: 30
+          periodSeconds: 10 

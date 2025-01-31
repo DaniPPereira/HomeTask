@@ -93,17 +93,33 @@ jobs:
           echo "Waiting for PostgreSQL to be ready..."
           kubectl wait --for=condition=available deployment/postgres --timeout=300s
           
+          echo "Checking PostgreSQL status..."
+          kubectl get pods -l app=postgres
+          PG_POD=$(kubectl get pod -l app=postgres -o jsonpath="{.items[0].metadata.name}")
+          echo "PostgreSQL pod logs:"
+          kubectl logs $PG_POD
+          
           echo "Applying application resources..."
           kubectl apply -f kubernetes/configmap.yaml
           kubectl apply -f kubernetes/secret.yaml
           kubectl apply -f kubernetes/deployment.yaml
           kubectl apply -f kubernetes/service.yaml
           
-          echo "Waiting for deployment to be ready..."
-          kubectl wait --for=condition=available deployment/user-service --timeout=300s
+          echo "Getting user-service pod name..."
+          sleep 10  # Wait for pod to be created
+          USER_POD=$(kubectl get pod -l app=user-service -o jsonpath="{.items[0].metadata.name}")
           
-          echo "Checking all resources..."
-          kubectl get all
+          echo "User Service pod details:"
+          kubectl describe pod $USER_POD
           
-          echo "Checking pod logs..."
-          kubectl logs -l app=user-service --tail=100
+          echo "User Service logs:"
+          kubectl logs $USER_POD
+          
+          echo "All pods status:"
+          kubectl get pods
+          
+          echo "All services status:"
+          kubectl get services
+          
+          echo "Events:"
+          kubectl get events --sort-by='.lastTimestamp'
