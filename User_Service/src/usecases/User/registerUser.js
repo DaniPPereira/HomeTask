@@ -4,38 +4,49 @@ const userRepository = require('../../framework/db/postgres/UserRepository'); //
 
 const SECRET_KEY = process.env.JWT_SECRET; // Chave secreta para o JWT
 
-module.exports = async (loginData) => {
-    const { email, password } = loginData;
+module.exports = async (userData) => {
+    const { name, email, password } = userData;
 
-    // Verifica se os campos obrigatórios foram fornecidos
-    if (!email || !password) {
-        throw new Error('Missing required fields: email, password');
+    // Validação dos campos obrigatórios
+    if (!name || !email || !password) {
+        throw new Error('Missing required fields: name, email, password');
     }
 
-    // Busca o usuário pelo email
+    // Verifica se o email já está em uso
     const existingUser = await userRepository.findByEmail(email);
     if (existingUser) {
-        throw new Error('Invalid credentials: user not found');
+        throw new Error('Email already registered');
     }
 
-    // Verifica se a senha está correta
-    const isPasswordValid = await bcrypt.compare(password, existingUser.password);
-    if (!isPasswordValid) {
-        throw new Error('Invalid credentials: incorrect password');
-    }
+    // Hash da senha
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Gera um token JWT
+    // Criar novo usuário
+    const newUser = await userRepository.create({
+        name,
+        email,
+        password: hashedPassword,
+        roles: ['user'] // Role padrão
+    });
+
+    // Gerar token JWT
     const token = jwt.sign(
-        { id: existingUser.id, email: existingUser.email, roles: existingUser.roles },
+        { 
+            id: newUser.id, 
+            email: newUser.email, 
+            roles: newUser.roles 
+        },
         SECRET_KEY,
         { expiresIn: '1h' }
     );
 
+    // Retorna os dados do usuário (sem a senha) e o token
     return {
-        id: existingUser.id,
-        name: existingUser.name,
-        email: existingUser.email,
-        roles: existingUser.roles,
-        token,
+        id: newUser.id,
+        name: newUser.name,
+        email: newUser.email,
+        roles: newUser.roles,
+        token
     };
 };
