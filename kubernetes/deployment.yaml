@@ -37,32 +37,21 @@ spec:
           periodSeconds: 20
         env:
         - name: DB_HOST
-          valueFrom:
-            configMapKeyRef:
-              name: user-service-config
-              key: DB_HOST
+          value: "postgres-service"
         - name: DB_PORT
-          valueFrom:
-            configMapKeyRef:
-              name: user-service-config
-              key: DB_PORT
+          value: "5432"
         - name: DB_NAME
-          valueFrom:
-            configMapKeyRef:
-              name: user-service-config
-              key: DB_NAME
+          value: "user_auth_db"
         - name: DB_USER
-          valueFrom:
-            secretKeyRef:
-              name: user-service-secrets
-              key: DB_USER
+          value: "Daniel"
         - name: DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: user-service-secrets
-              key: DB_PASSWORD
+          value: "9394"
         - name: JWT_SECRET
-          valueFrom:
-            configMapKeyRef:
-              name: user-service-config
-              key: JWT_SECRET 
+          value: "your-jwt-secret"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m" 
