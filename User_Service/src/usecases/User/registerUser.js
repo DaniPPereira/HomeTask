@@ -1,4 +1,4 @@
-const bcrypt = require('bcryptjs');
+const bcryptjs = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const userRepository = require('../../framework/db/postgres/UserRepository'); // Importa o repositório do usuário
 
@@ -20,7 +20,7 @@ module.exports = async (userData) => {
 
     // Hash da senha
     const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    const hashedPassword = await bcryptjs.hash(password, saltRounds);
 
     // Criar novo usuário
     const newUser = await userRepository.create({
