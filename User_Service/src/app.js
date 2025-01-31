@@ -31,6 +31,11 @@ app.use('/', express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.urlencoded({ extended: true })); // Parse application/x-www-form-urlencoded
 app.use(bodyParser.json()); // Parse application/json
 
+// Adicione antes das rotas
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok' });
+});
+
 // API routes
 app.use('/api/user', UserRoutes); // Shopping List routes
 
