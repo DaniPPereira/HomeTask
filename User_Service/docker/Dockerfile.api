@@ -13,10 +13,4 @@ RUN apk add --no-cache python3 make g++ && \
 # Copiar o resto dos arquivos
 COPY . .
 
-# Limpar cache e arquivos desnecessários
-RUN npm cache clean --force && \
-    rm -rf /var/cache/apk/*
-
-EXPOSE 3000
-
 CMD ["npm", "start"] 
