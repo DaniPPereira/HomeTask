@@ -85,6 +85,15 @@ jobs:
       - name: Deploy to Minikube
         run: |
           minikube start
+          
+          echo "Applying PostgreSQL resources..."
+          kubectl apply -f kubernetes/postgres-deployment.yaml
+          kubectl apply -f kubernetes/postgres-service.yaml
+          
+          echo "Waiting for PostgreSQL to be ready..."
+          kubectl wait --for=condition=available deployment/postgres --timeout=300s
+          
+          echo "Applying application resources..."
           kubectl apply -f kubernetes/configmap.yaml
           kubectl apply -f kubernetes/secret.yaml
           kubectl apply -f kubernetes/deployment.yaml
@@ -93,17 +102,8 @@ jobs:
           echo "Waiting for deployment to be ready..."
           kubectl wait --for=condition=available deployment/user-service --timeout=300s
           
-          echo "Checking pod status..."
-          kubectl get pods
+          echo "Checking all resources..."
+          kubectl get all
           
           echo "Checking pod logs..."
-          kubectl logs -l app=user-service
-          
-          echo "Checking service..."
-          kubectl get service user-service
-          
-          echo "Getting service URL..."
-          minikube service user-service --url
-          
-          echo "Checking endpoints..."
-          kubectl get endpoints user-service
+          kubectl logs -l app=user-service --tail=100

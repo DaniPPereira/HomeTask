@@ -60,4 +60,9 @@ spec:
           valueFrom:
             secretKeyRef:
               name: user-service-secrets
-              key: DB_PASSWORD 
+              key: DB_PASSWORD
+        - name: JWT_SECRET
+          valueFrom:
+            configMapKeyRef:
+              name: user-service-config
+              key: JWT_SECRET 
