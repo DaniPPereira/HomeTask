@@ -1,4 +1,4 @@
-const bcrypt = require('bcrypt');
+const bcryptjs = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const userRepository = require('../../framework/db/postgres/UserRepository'); // Importa o repositório do usuário
 
@@ -19,7 +19,7 @@ module.exports = async (loginData) => {
     }
 
     // Verifica se a senha está correta
-    const isPasswordValid = await bcrypt.compare(password, existingUser.password);
+    const isPasswordValid = await bcryptjs.compare(password, existingUser.password);
     if (!isPasswordValid) {
         throw new Error('Invalid credentials: incorrect password');
     }
