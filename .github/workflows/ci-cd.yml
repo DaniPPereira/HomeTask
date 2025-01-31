@@ -70,15 +70,23 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }}
 
-  # deploy:
-  #   needs: build-and-push
-  #   runs-on: ubuntu-latest
-  #   defaults:
-  #     run:
-  #       working-directory: ./User_Service
-  #   steps:
-  #     - uses: actions/checkout@v2
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
       
-  #     - name: Deploy to server
-  #       run: |
-  #         echo "Deploy step - configure according to your deployment strategy"
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v1
+      
+      - name: Set up Minikube
+        uses: medyagh/setup-minikube@master
+      
+      - name: Deploy to Minikube
+        run: |
+          minikube start
+          kubectl apply -f kubernetes/configmap.yaml
+          kubectl apply -f kubernetes/secret.yaml
+          kubectl apply -f kubernetes/deployment.yaml
+          kubectl apply -f kubernetes/service.yaml
+          minikube service user-service --url
