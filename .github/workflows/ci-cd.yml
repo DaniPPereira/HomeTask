@@ -15,6 +15,9 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./User_Service  # Define diretório padrão para todos os steps
     steps:
       - uses: actions/checkout@v2
       
@@ -24,18 +27,17 @@ jobs:
           node-version: '18'
           
       - name: Install dependencies
-        run: |
-          cd User_Service
-          npm ci
+        run: npm ci
           
       - name: Run tests
-        run: |
-          cd User_Service
-          npm test
+        run: npm test
 
   build-and-push:
     needs: test
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./User_Service  # Define diretório padrão para todos os steps
     steps:
       - uses: actions/checkout@v2
       
@@ -47,13 +49,15 @@ jobs:
           
       - name: Build and push Docker image
         run: |
-          cd User_Service
           docker-compose build api
           docker-compose push api
 
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./User_Service  # Define diretório padrão para todos os steps
     steps:
       - uses: actions/checkout@v2
       
