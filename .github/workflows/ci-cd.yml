@@ -89,4 +89,21 @@ jobs:
           kubectl apply -f kubernetes/secret.yaml
           kubectl apply -f kubernetes/deployment.yaml
           kubectl apply -f kubernetes/service.yaml
+          
+          echo "Waiting for deployment to be ready..."
+          kubectl wait --for=condition=available deployment/user-service --timeout=300s
+          
+          echo "Checking pod status..."
+          kubectl get pods
+          
+          echo "Checking pod logs..."
+          kubectl logs -l app=user-service
+          
+          echo "Checking service..."
+          kubectl get service user-service
+          
+          echo "Getting service URL..."
           minikube service user-service --url
+          
+          echo "Checking endpoints..."
+          kubectl get endpoints user-service
