@@ -14,7 +14,7 @@ module.exports = async (loginData) => {
 
     // Busca o usuário pelo email
     const existingUser = await userRepository.findByEmail(email);
-    if (!existingUser) {
+    if (existingUser) {
         throw new Error('Invalid credentials: user not found');
     }
 
