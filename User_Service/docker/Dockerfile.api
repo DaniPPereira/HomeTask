@@ -2,15 +2,16 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Copiar apenas os arquivos de package primeiro
+# Copiar arquivos de dependências
 COPY package*.json ./
 
 # Instalar dependências
-RUN apk add --no-cache python3 make g++ && \
-    npm ci --only=production && \
-    npm rebuild bcryptjs --build-from-source
+RUN npm install
 
 # Copiar o resto dos arquivos
 COPY . .
+
+# Expor a porta
+EXPOSE 3000
 
 CMD ["npm", "start"] 
