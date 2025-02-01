@@ -120,7 +120,7 @@ jobs:
           API_URL="http://$MINIKUBE_IP:30000"
           
           echo "1. Testing registration..."
-          REGISTER_RESPONSE=$(curl -s -X POST "$API_URL/api/v1/users/register" \
+          REGISTER_RESPONSE=$(curl -s -X POST "$API_URL/api/user" \
             -H "Content-Type: application/json" \
             -d '{
               "name": "Test User",
@@ -131,7 +131,7 @@ jobs:
           echo "Register Response: $REGISTER_RESPONSE"
           
           echo "2. Testing login..."
-          LOGIN_RESPONSE=$(curl -s -X POST "$API_URL/api/v1/users/login" \
+          LOGIN_RESPONSE=$(curl -s -X POST "$API_URL/api/user/login" \
             -H "Content-Type: application/json" \
             -d '{
               "email": "test@example.com",
