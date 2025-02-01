@@ -1,4 +1,4 @@
-const bcrypt = require('bcrypt');
+const bcryptjs = require('bcryptjs');
 const userRepository = require('../../framework/db/postgres/UserRepository');
 
 module.exports = async (userId, updateData) => {
@@ -15,7 +15,7 @@ module.exports = async (userId, updateData) => {
     // Se uma nova senha for fornecida, ela deve ser encriptada
     let updatedFields = { name, email, roles, profilepicture, verificationcode, codeexpiry };
     if (password) {
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const hashedPassword = await bcryptjs.hash(password, 10);
         updatedFields.password = hashedPassword;
     }
 
