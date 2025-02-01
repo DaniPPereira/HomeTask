@@ -129,6 +129,17 @@ jobs:
               "roles": "user"
             }')
           echo "Register Response: $REGISTER_RESPONSE"
+
+          echo "3. Testing registration..."
+          REGISTER_RESPONSE=$(curl -s -X POST "$API_URL/api/user" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "name": "Test User",
+              "email": "test@example.com",
+              "password": "Test@123",
+              "roles": "user"
+            }')
+          echo "Register Response: $REGISTER_RESPONSE"
           
           echo "2. Testing login..."
           LOGIN_RESPONSE=$(curl -s -X POST "$API_URL/api/user/login" \
