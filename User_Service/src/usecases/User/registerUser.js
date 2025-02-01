@@ -5,11 +5,11 @@ const userRepository = require('../../framework/db/postgres/UserRepository'); //
 const SECRET_KEY = process.env.JWT_SECRET; // Chave secreta para o JWT
 
 module.exports = async (userData) => {
-    const { name, email, password, role } = userData;
+    const { name, email, password, roles } = userData;
 
     // Validação dos campos obrigatórios
-    if (!name || !email || !password || !role) {
-        throw new Error('Missing required fields: name, email, password, role');
+    if (!name || !email || !password || !roles) {
+        throw new Error('Missing required fields: name, email, password, roles');
     }
 
     // Verifica se o email já está em uso
@@ -27,7 +27,7 @@ module.exports = async (userData) => {
         name,
         email,
         password: hashedPassword,
-        role: role
+        roles: roles
     });
 
     // Gerar token JWT
@@ -35,7 +35,7 @@ module.exports = async (userData) => {
         { 
             id: newUser.id, 
             email: newUser.email, 
-            role: newUser.role  // Também uma string simples aqui
+            role: newUser.roles
         },
         SECRET_KEY,
         { expiresIn: '1h' }
@@ -46,7 +46,7 @@ module.exports = async (userData) => {
         id: newUser.id,
         name: newUser.name,
         email: newUser.email,
-        role: newUser.role,
+        role: newUser.roles,
         token
     };
 };
