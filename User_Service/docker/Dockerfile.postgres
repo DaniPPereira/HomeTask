@@ -9,4 +9,4 @@ ENV POSTGRES_DB=user_auth_db
 COPY docker/db/initial_schema.sql /docker-entrypoint-initdb.d/
 
 # Expor a porta 5432 para conexões externas
-EXPOSE 5435
+EXPOSE 5432

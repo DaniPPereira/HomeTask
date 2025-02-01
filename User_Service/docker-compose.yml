@@ -53,7 +53,7 @@ services:
     volumes:
       - rel-data:/var/lib/postgresql/data
     ports:
-      - "5435:${DB_PORT}"
+      - "5432:${DB_PORT}"
     networks:
       - app-network
 
