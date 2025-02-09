@@ -30,6 +30,7 @@ module.exports = async (email) => {
     //});
 
     return {
+        verificationCode: verificationCode,
         message: 'Password reset code sent successfully',
     };
 };
