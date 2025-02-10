@@ -140,7 +140,7 @@ jobs:
           echo "Testing API at: $API_URL"
           
           echo "1. Testing registration..."
-          curl -v -X POST "$API_URL/api/v1/users/register" \
+          curl -v -X POST "$API_URL/api/user/" \
             -H "Content-Type: application/json" \
             -d '{
               "name": "Test User",
@@ -220,7 +220,7 @@ jobs:
           
           # Teste com mais informações
           echo "1. Testing registration..."
-          curl -v -X POST "$API_URL/api/v1/users/register" \
+          curl -v -X POST "$API_URL/api/user/" \
             -H "Content-Type: application/json" \
             -d '{
               "name": "Test User",
