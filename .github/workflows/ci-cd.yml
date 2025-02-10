@@ -148,3 +148,47 @@ jobs:
               "password": "Test@123",
               "roles": "user"
             }'
+
+          # Coletar métricas e logs
+          echo "=== MONITORING INFORMATION ==="
+          
+          echo "\n=== Prometheus Metrics ==="
+          kubectl port-forward -n monitoring svc/prometheus-server 9090:80 &
+          sleep 5
+          curl -s http://localhost:9090/api/v1/targets | jq .
+          
+          echo "\n=== Grafana Status ==="
+          kubectl get pods -n monitoring -l "app.kubernetes.io/name=grafana" -o wide
+          
+          echo "\n=== System Metrics ==="
+          kubectl top pods --all-namespaces
+          
+          echo "\n=== Application Logs ==="
+          kubectl logs -l app=user-service --tail=50
+          
+          echo "\n=== Prometheus Logs ==="
+          kubectl logs -n monitoring -l "app.kubernetes.io/name=prometheus" --tail=20
+          
+          echo "\n=== Grafana Logs ==="
+          kubectl logs -n monitoring -l "app.kubernetes.io/name=grafana" --tail=20
+          
+          echo "\n=== Service Endpoints ==="
+          kubectl get services --all-namespaces
+          
+          echo "\n=== Pod Status ==="
+          kubectl get pods --all-namespaces
+          
+          echo "\n=== Resource Usage ==="
+          kubectl describe nodes
+          
+          # Salvar logs em artifacts
+          mkdir -p /tmp/monitoring-logs
+          kubectl logs -l app=user-service > /tmp/monitoring-logs/user-service.log
+          kubectl logs -n monitoring -l "app.kubernetes.io/name=prometheus" > /tmp/monitoring-logs/prometheus.log
+          kubectl logs -n monitoring -l "app.kubernetes.io/name=grafana" > /tmp/monitoring-logs/grafana.log
+
+      - name: Upload monitoring logs
+        uses: actions/upload-artifact@v2
+        with:
+          name: monitoring-logs
+          path: /tmp/monitoring-logs
