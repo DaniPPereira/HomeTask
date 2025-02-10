@@ -188,7 +188,8 @@ jobs:
           kubectl logs -n monitoring -l "app.kubernetes.io/name=grafana" > /tmp/monitoring-logs/grafana.log
 
       - name: Upload monitoring logs
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: monitoring-logs
           path: /tmp/monitoring-logs
+          retention-days: 5
