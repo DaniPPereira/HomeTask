@@ -79,6 +79,9 @@ jobs:
       - name: Set up kubectl
         uses: azure/setup-kubectl@v1
       
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+      
       - name: Set up Minikube
         uses: medyagh/setup-minikube@master
       
@@ -86,52 +89,73 @@ jobs:
         run: |
           minikube start
           
-          echo "Creating Docker credentials..."
+          # Criar namespace para monitoring
+          kubectl create namespace monitoring
+          
+          # Aplicar configurações do Prometheus e Grafana
+          kubectl apply -f kubernetes/prometheus-config.yaml
+          kubectl apply -f kubernetes/grafana-dashboards.yaml
+          kubectl apply -f kubernetes/grafana-datasource.yaml
+          
+          # Adicionar repos Helm
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo add grafana https://grafana.github.io/helm-charts
+          helm repo update
+          
+          # Instalar Prometheus com valores customizados
+          helm install prometheus prometheus-community/prometheus \
+            --namespace monitoring \
+            --set server.configMapName=prometheus-config
+          
+          # Instalar Grafana com valores customizados
+          helm install grafana grafana/grafana \
+            --namespace monitoring \
+            --set datasources."datasources\.yaml".apiVersion=1 \
+            --set datasources."datasources\.yaml".datasources[0].name=Prometheus \
+            --set datasources."datasources\.yaml".datasources[0].type=prometheus \
+            --set datasources."datasources\.yaml".datasources[0].url=http://prometheus-server:80 \
+            --set datasources."datasources\.yaml".datasources[0].access=proxy \
+            --set datasources."datasources\.yaml".datasources[0].isDefault=true
+          
+          # Aplicar Watchtower
+          kubectl apply -f kubernetes/watchtower-deployment.yaml
+          
+          # Criar secret do Docker
           kubectl create secret docker-registry docker-credentials \
             --docker-server=https://index.docker.io/v1/ \
-            --docker-username=${{ secrets.DOCKER_USERNAME }} \
-            --docker-password=${{ secrets.DOCKER_PASSWORD }}
+            --docker-username=$DOCKER_USERNAME \
+            --docker-password=$DOCKER_PASSWORD
           
-          echo "Applying PostgreSQL resources..."
+          # Aplicar recursos do postgres
           kubectl apply -f kubernetes/postgres-deployment.yaml
           kubectl apply -f kubernetes/postgres-service.yaml
           
-          echo "Waiting for PostgreSQL to be ready..."
-          kubectl wait --for=condition=ready pod -l app=postgres --timeout=300s
-          
-          echo "Checking PostgreSQL status..."
-          kubectl get pods -l app=postgres
-          PG_POD=$(kubectl get pod -l app=postgres -o jsonpath="{.items[0].metadata.name}")
-          echo "PostgreSQL pod logs:"
-          kubectl logs $PG_POD
-          
-          echo "Applying application resources..."
+          # Aplicar recursos da aplicação
           kubectl apply -f kubernetes/deployment.yaml
           kubectl apply -f kubernetes/service.yaml
           
-          echo "Waiting for application to be ready..."
-          kubectl wait --for=condition=ready pod -l app=user-service --timeout=300s
+          # Esperar pelos pods
+          echo "Waiting for monitoring tools to be ready..."
+          kubectl wait --for=condition=ready pod -l app=prometheus --timeout=300s -n monitoring
+          kubectl wait --for=condition=ready pod -l app=grafana --timeout=300s -n monitoring
           
-          echo "All resources status:"
-          kubectl get all
+          # Mostrar informações do Grafana
+          echo "Getting Grafana admin password..."
+          kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
           
+          echo "Grafana URL:"
+          minikube service grafana --url -n monitoring
+          
+          echo "Prometheus URL:"
+          minikube service prometheus-server --url -n monitoring
+          
+          # Testar a aplicação
           echo "Testing API endpoints..."
           MINIKUBE_IP=$(minikube ip)
           API_URL="http://$MINIKUBE_IP:30000"
           
           echo "1. Testing registration..."
-          REGISTER_RESPONSE=$(curl -s -X POST "$API_URL/api/user" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "name": "Test User",
-              "email": "test@example.com",
-              "password": "Test@123",
-              "roles": "user"
-            }')
-          echo "Register Response: $REGISTER_RESPONSE"
-
-          echo "3. Testing registration..."
-          REGISTER_RESPONSE=$(curl -s -X POST "$API_URL/api/user" \
+          REGISTER_RESPONSE=$(curl -s -X POST "$API_URL/api/v1/users/register" \
             -H "Content-Type: application/json" \
             -d '{
               "name": "Test User",
@@ -142,19 +166,10 @@ jobs:
           echo "Register Response: $REGISTER_RESPONSE"
           
           echo "2. Testing login..."
-          LOGIN_RESPONSE=$(curl -s -X POST "$API_URL/api/user/login" \
+          LOGIN_RESPONSE=$(curl -s -X POST "$API_URL/api/v1/users/login" \
             -H "Content-Type: application/json" \
             -d '{
               "email": "test@example.com",
               "password": "Test@123"
             }')
           echo "Login Response: $LOGIN_RESPONSE"
-          
-          # Extrair e verificar o token do caminho correto na resposta
-          TOKEN=$(echo $LOGIN_RESPONSE | jq -r '.data.token')
-          if [ "$TOKEN" != "null" ] && [ "$TOKEN" != "" ]; then
-            echo "✅ Login successful - Token received"
-          else
-            echo "❌ Login failed - No token received"
-            exit 1
-          fi

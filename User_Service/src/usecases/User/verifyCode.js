@@ -52,4 +52,4 @@ const verifyCode = async (email, code) => {
     }
 };
 
-module.exports = { verifyCode };
+module.exports = verifyCode;
