@@ -186,6 +186,26 @@ jobs:
           path: /tmp/monitoring-logs
           retention-days: 5
 
+      - name: Download and check logs
+        uses: actions/download-artifact@v4
+        with:
+          name: monitoring-logs
+          path: ./downloaded-logs
+
+      - name: Display logs
+        run: |
+          echo "=== Checking Downloaded Logs ==="
+          ls -la ./downloaded-logs
+          
+          echo "\n=== User Service Logs ==="
+          cat ./downloaded-logs/user-service.log
+          
+          echo "\n=== Prometheus Logs ==="
+          cat ./downloaded-logs/prometheus.log
+          
+          echo "\n=== Grafana Logs ==="
+          cat ./downloaded-logs/grafana.log
+
       - name: Test API
         run: |
           # Esperar API estar pronta
