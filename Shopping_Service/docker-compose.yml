@@ -1,0 +1,47 @@
+services:
+  # API Service
+  api:
+    container_name: api-shopping
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - DB_HOST=db-rel-shopping
+      - DB_PORT=5432
+      - DB_USER=grupo6_admin
+      - DB_PASSWORD=grupo6
+      - DB_NAME=home_task_shopping_list_db
+      - PORT=3001
+    ports:
+      - "3001:3001"
+    depends_on:
+      - db-rel
+    networks:
+      - shopping-network
+
+  # Database to store Relational data
+  db-rel:
+    container_name: db-rel-shopping
+    build: docker/db
+    volumes:
+      - rel-data:/var/lib/postgresql/data
+    ports:
+      - "${EXP_PORT_PG_REL:-5433}:5432"
+    networks:
+      - shopping-network
+
+# Mongo Database to store NoSQL data
+# db-nosql:
+#   container_name: db-nosql
+#   image: mongo:4.4.6
+#   volumes:
+#     - nosql-data:/data/db
+#   ports:
+#     - "${EXP_PORT_MONGO}:27017"
+
+volumes:
+  rel-data:  #nosql-data:
+
+networks:
+  shopping-network:
+    driver: bridge

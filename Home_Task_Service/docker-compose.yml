@@ -1,0 +1,48 @@
+services:
+  # API Service
+  api:
+    container_name: api-hometask
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - DB_HOST=db-rel-hometask
+      - DB_PORT=5432
+      - DB_USER=grupo6_admin
+      - DB_PASSWORD=grupo6
+      - DB_NAME=home_task_db
+      - PORT=3001
+    ports:
+      - "3001:3001"
+    depends_on:
+      - db-rel
+    networks:
+      - hometask-network
+
+  # Database to store Relational data
+  db-rel:
+    container_name: db-rel-hometask
+    build: docker/db
+    volumes:
+      - rel-data:/var/lib/postgresql/data
+    ports:
+      - "${EXP_PORT_PG_REL:-5432}:5432"
+    networks:
+      - hometask-network
+
+  # Mongo Database to store NoSQL data
+  # db-nosql:
+  #   container_name: db-nosql
+  #   image: mongo:4.4.6
+  #   volumes:
+  #     - nosql-data:/data/db
+  #   ports:
+  #     - "${EXP_PORT_MONGO}:27017"
+
+volumes:
+  rel-data:
+  #nosql-data:
+
+networks:
+  hometask-network:
+    driver: bridge
