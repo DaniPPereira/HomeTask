@@ -14,7 +14,8 @@ spec:
     spec:
       containers:
       - name: home-task-service
-        image: ${DOCKER_USERNAME}/home-task-service:latest
+        image: pereira6/home-task-service:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 3000
         env:
@@ -25,15 +26,16 @@ spec:
         - name: DB_NAME
           value: "home_task_db"
         - name: DB_USER
-          valueFrom:
-            secretKeyRef:
-              name: postgres-secret
-              key: postgres-user
+          value: "grupo6_admin"
         - name: DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: postgres-secret
-              key: postgres-password
+          value: "grupo6"
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
 ---
 apiVersion: v1
 kind: Service
