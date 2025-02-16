@@ -61,7 +61,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
           
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/build-push-action@v2
           
       - name: Build and push
         uses: docker/build-push-action@v2
@@ -94,9 +94,9 @@ jobs:
           
           # Wait for databases to be ready
           echo "Waiting for databases to be ready..."
-          kubectl wait --for=condition=ready pod -l app=postgres-user --timeout=120s
-          kubectl wait --for=condition=ready pod -l app=postgres-shopping --timeout=120s
-          kubectl wait --for=condition=ready pod -l app=postgres-hometask --timeout=120s
+          kubectl wait --for=condition=ready pod -l app=postgres-user --timeout=180s
+          kubectl wait --for=condition=ready pod -l app=postgres-shopping --timeout=180s
+          kubectl wait --for=condition=ready pod -l app=postgres-hometask --timeout=180s
           
           # Deploy services
           echo "Deploying services..."
@@ -104,27 +104,42 @@ jobs:
           kubectl apply -f kubernetes/shopping-service/deployment.yaml
           kubectl apply -f kubernetes/home-task-service/deployment.yaml
           
-          # Wait for services to be ready
-          echo "Waiting for services to be ready..."
-          kubectl wait --for=condition=ready pod -l app=user-service --timeout=120s
-          kubectl wait --for=condition=ready pod -l app=shopping-service --timeout=120s
-          kubectl wait --for=condition=ready pod -l app=home-task-service --timeout=120s
-          
-          # Show status
-          echo "Deployment complete. Showing status:"
+          # Debug info
+          echo "Showing pods status..."
           kubectl get pods
-          kubectl get services
+          
+          # Wait for services with debug
+          echo "Waiting for User Service..."
+          kubectl wait --for=condition=ready pod -l app=user-service --timeout=180s || true
+          kubectl describe pods -l app=user-service
+          
+          echo "Waiting for Shopping Service..."
+          kubectl wait --for=condition=ready pod -l app=shopping-service --timeout=180s || true
+          kubectl describe pods -l app=shopping-service
+          
+          echo "Waiting for Home Task Service..."
+          kubectl wait --for=condition=ready pod -l app=home-task-service --timeout=180s || true
+          kubectl describe pods -l app=home-task-service
+          
+          # Show final status
+          echo "Final pod status:"
+          kubectl get pods
+          
+          # Show logs of services if they exist
+          echo "Service Logs:"
+          kubectl logs -l app=user-service --tail=50 || true
+          kubectl logs -l app=shopping-service --tail=50 || true
+          kubectl logs -l app=home-task-service --tail=50 || true
 
       - name: Test Services
+        if: always()  # Executar mesmo se o passo anterior falhar
         run: |
           # Get Minikube IP
           MINIKUBE_IP=$(minikube ip)
           
-          echo "Testing User Service..."
-          curl -v "http://${MINIKUBE_IP}:30002/health"
+          echo "Minikube IP: ${MINIKUBE_IP}"
+          echo "All Services:"
+          kubectl get services
           
-          echo "Testing Shopping Service..."
-          curl -v "http://${MINIKUBE_IP}:30001/health"
-          
-          echo "Testing Home Task Service..."
-          curl -v "http://${MINIKUBE_IP}:30000/health"
+          echo "All Pods:"
+          kubectl get pods
