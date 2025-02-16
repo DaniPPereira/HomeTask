@@ -1,17 +1,17 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: postgres
+  name: postgres-shopping
 spec:
-  serviceName: postgres-service
+  serviceName: postgres-shopping
   replicas: 1
   selector:
     matchLabels:
-      app: postgres
+      app: postgres-shopping
   template:
     metadata:
       labels:
-        app: postgres
+        app: postgres-shopping
     spec:
       containers:
       - name: postgres
@@ -19,12 +19,12 @@ spec:
         ports:
         - containerPort: 5432
         env:
-        - name: POSTGRES_USER
-          value: "Daniel"
-        - name: POSTGRES_PASSWORD
-          value: "9394"
         - name: POSTGRES_DB
-          value: "user_auth_db"
+          value: shopping_service_db
+        - name: POSTGRES_USER
+          value: grupo6_admin
+        - name: POSTGRES_PASSWORD
+          value: grupo6
         volumeMounts:
         - name: postgres-storage
           mountPath: /var/lib/postgresql/data
@@ -35,4 +35,15 @@ spec:
       accessModes: [ "ReadWriteOnce" ]
       resources:
         requests:
-          storage: 1Gi 
+          storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-shopping
+spec:
+  selector:
+    app: postgres-shopping
+  ports:
+    - port: 5432
+      targetPort: 5432 
