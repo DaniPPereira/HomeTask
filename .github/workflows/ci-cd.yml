@@ -44,7 +44,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [User_Service, Shopping_Service, Home_Task_Service]
+        include:
+          - service_dir: User_Service
+            image_name: user-service
+          - service_dir: Shopping_Service
+            image_name: shopping-service
+          - service_dir: Home_Task_Service
+            image_name: home-task-service
     steps:
       - uses: actions/checkout@v2
       
@@ -67,9 +73,9 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
-          context: ./${{ matrix.service }}
+          context: ./${{ matrix.service_dir }}
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/${{ matrix.service }}:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/${{ matrix.image_name }}:latest
 
   deploy:
     needs: build-and-push
