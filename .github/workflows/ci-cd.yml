@@ -172,17 +172,14 @@ jobs:
       
       - name: Deploy Prometheus and Grafana
         run: |
-          # Aplicar configurações de monitoramento
           kubectl apply -f kubernetes/monitoring/prometheus-config.yaml
           kubectl apply -f kubernetes/monitoring/prometheus.yaml
           kubectl apply -f kubernetes/monitoring/grafana.yaml
           kubectl apply -f kubernetes/monitoring/grafana-dashboard.yaml
           
-          # Aguardar pods estarem prontos
           kubectl wait --for=condition=ready pod -l app=prometheus --timeout=300s
           kubectl wait --for=condition=ready pod -l app=grafana --timeout=300s
           
-          # Obter URLs
           echo "Prometheus URL: $(minikube service prometheus --url)"
           echo "Grafana URL: $(minikube service grafana --url)"
           
@@ -200,7 +197,7 @@ jobs:
           curl -s "http://${MINIKUBE_IP}:30000/metrics" > home_metrics.txt
           
       - name: Upload Metrics
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: service-metrics
           path: |
@@ -227,7 +224,7 @@ jobs:
           echo "Grafana: $(minikube service grafana --url)" >> monitoring_urls.txt
           
       - name: Upload URLs
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: monitoring-urls
           path: monitoring_urls.txt
