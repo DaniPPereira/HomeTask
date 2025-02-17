@@ -26,11 +26,6 @@ app.use(bodyParser.urlencoded({ extended: true })); // Parse application/x-www-f
 app.use(bodyParser.json()); // Parse application/json
 
 
-// Adicione antes das rotas
-app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'ok', service: 'user-service' });
-});
-
 // API routes
 app.use('/api/user', UserRoutes); // Shopping List routes
 

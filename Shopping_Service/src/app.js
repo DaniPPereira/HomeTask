@@ -1,7 +1,10 @@
-// Initialize Express app, connect to the database, and define routes
+// express, a web framework for Node.js
 const express = require('express');
+// For interacting with the file system
 const path = require('path');
+// For parsing the body of incoming requests
 const bodyParser = require('body-parser');
+// For connecting to the database
 const sequelize = require('./framework/db/postgres/config');
 const { swaggerDocs, swaggerUi } = require('../public/swagger');
 
@@ -17,10 +20,12 @@ sequelize
     .then(() => console.log('✅ Database connected successfully!'))
     .catch((err) => console.error('❌ Error connecting to the database:', err));
 
-// Middleware
-app.use(express.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+// Serve static files from the "public" directory
+app.use('/', express.static(path.join(__dirname, 'public')));
+
+// Body parser middleware
+app.use(bodyParser.urlencoded({ extended: true })); // Parse application/x-www-form-urlencoded
+app.use(bodyParser.json()); // Parse application/json
 
 // API routes
 app.use('/api/shopping-lists', require('./controllers/ShoppingListController'));
@@ -35,12 +40,13 @@ app.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok', service: 'shopping-service' });
 });
 
-// Error handling middleware
+// Handle errors
 app.use((err, req, res, next) => {
     console.error(err.stack);
-    res.status(err.status || 500).json({
-        success: false,
-        message: err.message || 'Internal Server Error'
+    res.status(err.status || 500).send({
+        error: {
+            message: err.message || 'Internal Server Error',
+        },
     });
 });
 

@@ -3,22 +3,22 @@
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
-const { db, initializeModels } = require('./framework/db/postgres/models');
+const sequelize = require('./framework/db/postgres/config');
 const { swaggerDocs, swaggerUi } = require('../public/swagger');
 
 // Swagger UI for API documentation
 
 (async () => {
     try {
-        await db.authenticate();
-        console.log('✅ Database connection established successfully!');
-
-        await initializeModels();
-        console.log('✅ Models initialized and synchronized successfully!');
+        await sequelize.authenticate();
+        console.log('✅ Database connected successfully!');
 
         const app = express();
 
-        app.use(express.json());
+        app.use('/', express.static(path.join(__dirname, 'public')));
+
+        app.use(bodyParser.urlencoded({ extended: true }));
+        app.use(bodyParser.json());
 
         app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
         // Importar controladores
