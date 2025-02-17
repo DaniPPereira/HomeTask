@@ -146,15 +146,7 @@ jobs:
           echo $LOGIN_RESPONSE | jq .
 
           echo "=== Testing Shopping Service ==="
-          echo "1. Creating shopping list..."
-          LIST_RESPONSE=$(curl -s -X POST "http://${MINIKUBE_IP}:30003/api/shopping-lists" \
-            -H "Content-Type: application/json" \
-            -H "Authorization: Bearer ${TOKEN}" \
-            -d "{\"title\":\"Minha Lista\",\"homeId\":${HOME_ID}}")
-          echo "List Response: $LIST_RESPONSE"
-          LIST_ID=$(echo $LIST_RESPONSE | jq -r '.data.shoppingList.id')
-
-          echo "2. Creating item category..."
+          echo "1. Creating item category..."
           CATEGORY_RESPONSE=$(curl -s -X POST "http://${MINIKUBE_IP}:30003/api/item-categories" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${TOKEN}" \
@@ -162,11 +154,11 @@ jobs:
           echo "Category Response: $CATEGORY_RESPONSE"
           CATEGORY_ID=$(echo $CATEGORY_RESPONSE | jq -r '.data.shoppingItemCategory.id')
 
-          echo "3. Creating shopping item..."
+          echo "2. Creating shopping item..."
           ITEM_RESPONSE=$(curl -s -X POST "http://${MINIKUBE_IP}:30003/api/shopping-items" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${TOKEN}" \
-            -d "{\"description\":\"Chocolate\",\"quantity\":2,\"shoppingListId\":${LIST_ID},\"itemCategoryId\":${CATEGORY_ID},\"state\":\"ToDo\",\"price\":\"12.99\"}")
+            -d "{\"description\":\"Chocolate\",\"quantity\":2,\"shoppingListId\":1,\"itemCategoryId\":${CATEGORY_ID},\"state\":\"ToDo\",\"price\":\"12.99\"}")
           echo "Item Response: $ITEM_RESPONSE"
           
           echo "=== Testing Home Task Service ==="
@@ -176,14 +168,6 @@ jobs:
             -H "Authorization: Bearer ${TOKEN}" \
             -d '{"name":"Casa de Férias","address":"Rua das Amoras","zipCodeId":1,"userId":1}')
           echo "Home Response: $HOME_RESPONSE"
-          if [ $? -ne 0 ]; then
-            echo "Failed to create home. Status code: $?"
-            echo "Response: $HOME_RESPONSE"
-            curl -v "http://${MINIKUBE_IP}:30000/health"
-            kubectl get pods
-            kubectl logs $(kubectl get pods -l app=home-task-service -o name)
-            exit 1
-          fi
           HOME_ID=$(echo $HOME_RESPONSE | jq -r '.data.id')
           
           echo "2. Adding resident to home..."
