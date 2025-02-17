@@ -158,22 +158,77 @@ jobs:
           ITEM_RESPONSE=$(curl -s -X POST "http://${MINIKUBE_IP}:30003/api/shopping-items" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${TOKEN}" \
-            -d "{\"description\":\"Chocolate\",\"quantity\":2,\"shoppingListId\":1,\"itemCategoryId\":${CATEGORY_ID},\"state\":\"ToDo\",\"price\":\"12.99\"}")
+            -d "{\"description\":\"Chocolate\",\"quantity\":2,\"shoppingListId\":1,\"itemCategoryId\":1,\"state\":\"ToDo\",\"price\":\"12.99\"}")
           echo "Item Response: $ITEM_RESPONSE"
           
-          echo "=== Testing Home Task Service ==="
-          echo "1. Creating new home..."
-          HOME_RESPONSE=$(curl -v -X POST "http://${MINIKUBE_IP}:30000/api/homes" \
-            -H "Content-Type: application/json" \
-            -H "Authorization: Bearer ${TOKEN}" \
-            -d '{"name":"Casa de Férias","address":"Rua das Amoras","zipCodeId":1,"userId":1}')
-          echo "Home Response: $HOME_RESPONSE"
-          HOME_ID=$(echo $HOME_RESPONSE | jq -r '.data.id')
+  monitoring:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v1
+      
+      - name: Deploy Prometheus and Grafana
+        run: |
+          # Aplicar configurações de monitoramento
+          kubectl apply -f kubernetes/monitoring/prometheus-config.yaml
+          kubectl apply -f kubernetes/monitoring/prometheus.yaml
+          kubectl apply -f kubernetes/monitoring/grafana.yaml
+          kubectl apply -f kubernetes/monitoring/grafana-dashboard.yaml
           
-          echo "2. Adding resident to home..."
-          RESIDENT_RESPONSE=$(curl -s -X POST "http://${MINIKUBE_IP}:30000/api/residents" \
-            -H "Content-Type: application/json" \
-            -H "Authorization: Bearer ${TOKEN}" \
-            -d "{\"homeId\":${HOME_ID},\"userId\":1}")
-          echo "Resident Response: $RESIDENT_RESPONSE"
+          # Aguardar pods estarem prontos
+          kubectl wait --for=condition=ready pod -l app=prometheus --timeout=300s
+          kubectl wait --for=condition=ready pod -l app=grafana --timeout=300s
+          
+          # Obter URLs
+          echo "Prometheus URL: $(minikube service prometheus --url)"
+          echo "Grafana URL: $(minikube service grafana --url)"
+          
+      - name: Check Services Metrics
+        run: |
+          MINIKUBE_IP=$(minikube ip)
+          
+          echo "Collecting User Service metrics..."
+          curl -s "http://${MINIKUBE_IP}:30002/metrics" > user_metrics.txt
+          
+          echo "Collecting Shopping Service metrics..."
+          curl -s "http://${MINIKUBE_IP}:30003/metrics" > shopping_metrics.txt
+          
+          echo "Collecting Home Task Service metrics..."
+          curl -s "http://${MINIKUBE_IP}:30000/metrics" > home_metrics.txt
+          
+      - name: Upload Metrics
+        uses: actions/upload-artifact@v2
+        with:
+          name: service-metrics
+          path: |
+            user_metrics.txt
+            shopping_metrics.txt
+            home_metrics.txt
+            
+      - name: Monitor Services Status
+        run: |
+          echo "=== Services Status ==="
+          kubectl get pods
+          
+          echo "=== Monitoring Tools Status ==="
+          echo "Prometheus Status:"
+          kubectl get pod -l app=prometheus -o jsonpath='{.items[0].status.phase}'
+          
+          echo "Grafana Status:"
+          kubectl get pod -l app=grafana -o jsonpath='{.items[0].status.phase}'
+          
+      - name: Save Monitoring URLs
+        run: |
+          echo "Monitoring URLs:" > monitoring_urls.txt
+          echo "Prometheus: $(minikube service prometheus --url)" >> monitoring_urls.txt
+          echo "Grafana: $(minikube service grafana --url)" >> monitoring_urls.txt
+          
+      - name: Upload URLs
+        uses: actions/upload-artifact@v2
+        with:
+          name: monitoring-urls
+          path: monitoring_urls.txt
 

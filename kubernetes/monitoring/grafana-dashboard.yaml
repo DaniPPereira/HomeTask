@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard
+data:
+  dashboard.json: |
+    {
+      "dashboard": {
+        "title": "Microservices Dashboard",
+        "panels": [
+          {
+            "title": "HTTP Requests Total",
+            "type": "graph",
+            "datasource": "Prometheus",
+            "targets": [
+              {
+                "expr": "http_requests_total",
+                "legendFormat": "{{method}} {{path}}"
+              }
+            ]
+          },
+          {
+            "title": "Response Time",
+            "type": "graph",
+            "datasource": "Prometheus",
+            "targets": [
+              {
+                "expr": "http_request_duration_seconds_sum / http_request_duration_seconds_count",
+                "legendFormat": "{{path}}"
+              }
+            ]
+          }
+        ]
+      }
+    } 

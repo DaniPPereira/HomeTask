@@ -25,22 +25,13 @@ spec:
               name: services-config
               key: JWT_SECRET
         - name: DB_HOST
-          value: postgres-user
+          value: "postgres-user"
         - name: DB_PORT
-          valueFrom:
-            configMapKeyRef:
-              name: services-config
-              key: DB_PORT
+          value: "5432"
         - name: DB_NAME
-          valueFrom:
-            configMapKeyRef:
-              name: database-config
-              key: USER_DB_NAME
+          value: "user_service_db"
         - name: DB_USER
-          valueFrom:
-            secretKeyRef:
-              name: postgres-credentials
-              key: POSTGRES_USER
+          value: "Daniel"
         - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
