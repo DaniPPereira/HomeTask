@@ -148,11 +148,19 @@ jobs:
           
           echo "=== Testing Home Task Service ==="
           echo "1. Creating new home..."
-          HOME_RESPONSE=$(curl -s -X POST "http://${MINIKUBE_IP}:30000/api/homes" \
+          HOME_RESPONSE=$(curl -v -X POST "http://${MINIKUBE_IP}:30000/api/homes" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${TOKEN}" \
             -d '{"name":"Casa de Férias","address":"Rua das Amoras","zipCodeId":1,"userId":1}')
           echo "Home Response: $HOME_RESPONSE"
+          if [ $? -ne 0 ]; then
+            echo "Failed to create home. Status code: $?"
+            echo "Response: $HOME_RESPONSE"
+            curl -v "http://${MINIKUBE_IP}:30000/health"
+            kubectl get pods
+            kubectl logs $(kubectl get pods -l app=home-task-service -o name)
+            exit 1
+          fi
           HOME_ID=$(echo $HOME_RESPONSE | jq -r '.data.id')
           
           echo "2. Adding resident to home..."
