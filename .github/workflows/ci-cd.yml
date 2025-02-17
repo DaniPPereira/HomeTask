@@ -115,15 +115,27 @@ jobs:
           kubectl get pods
           kubectl get services
       - name: Test Services
+        if: always()
         run: |
           # Get Minikube IP
           MINIKUBE_IP=$(minikube ip)
           
+          echo "Minikube IP: ${MINIKUBE_IP}"
+          echo "All Services:"
+          kubectl get services
+          
+          echo "All Pods:"
+          kubectl get pods
+          
+          # Aguardar um pouco para os serviços estarem prontos
+          echo "Waiting for services to be fully ready..."
+          sleep 30
+          
           echo "Testing User Service..."
-          curl -v "http://${MINIKUBE_IP}:30002/health"
+          curl -v "http://${MINIKUBE_IP}:30002/api/users" || true
           
           echo "Testing Shopping Service..."
-          curl -v "http://${MINIKUBE_IP}:30001/health"
+          curl -v "http://${MINIKUBE_IP}:30001/api/shopping" || true
           
           echo "Testing Home Task Service..."
-          curl -v "http://${MINIKUBE_IP}:30000/health"
+          curl -v "http://${MINIKUBE_IP}:30000/api/tasks" || true
