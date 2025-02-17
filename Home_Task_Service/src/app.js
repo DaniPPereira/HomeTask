@@ -5,6 +5,8 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const { db, initializeModels } = require('./framework/db/postgres/models');
 const { swaggerDocs, swaggerUi } = require('../public/swagger');
+const cors = require('cors');
+const taskRoutes = require('./routes/taskRoutes');
 
 // Swagger UI for API documentation
 
@@ -18,9 +20,8 @@ const { swaggerDocs, swaggerUi } = require('../public/swagger');
 
         const app = express();
 
-        // Middleware para parser do corpo das requisições
-        app.use(bodyParser.urlencoded({ extended: true }));
-        app.use(bodyParser.json());
+        app.use(cors());
+        app.use(express.json());
 
         app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
         // Importar controladores
@@ -38,6 +39,11 @@ const { swaggerDocs, swaggerUi } = require('../public/swagger');
         app.use('/homes', homeRouter);
         app.use('/zipcodes', zipCodeRouter);
         app.use('/residents', residentsRouter);
+
+        // Health check endpoint
+        app.get('/health', (req, res) => {
+            res.status(200).json({ status: 'ok', service: 'home-task-service' });
+        });
 
         // Middleware para tratamento de erros
         app.use((err, req, res, next) => {

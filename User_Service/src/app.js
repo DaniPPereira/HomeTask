@@ -12,7 +12,7 @@ const sequelize = require('./framework/db/postgres/config');
 //const swaggerDocument = require('../public/swagger.json');
 // Load environment variables from .env
 
-
+const cors = require('cors');
 const UserRoutes = require('./controllers/UserController');
 
 // Initialize Express app
@@ -31,9 +31,11 @@ app.use('/', express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.urlencoded({ extended: true })); // Parse application/x-www-form-urlencoded
 app.use(bodyParser.json()); // Parse application/json
 
+app.use(cors());
+
 // Adicione antes das rotas
 app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'ok' });
+    res.status(200).json({ status: 'ok', service: 'user-service' });
 });
 
 // API routes
