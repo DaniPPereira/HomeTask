@@ -7,64 +7,135 @@ on:
     branches: [ main ]
 
 env:
-  REGISTRY: pereira6
-  MINIKUBE_VERSION: v1.32.0
+  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+  DOCKER_IMAGE: user-service
+  DOCKER_TAG: latest
 
 jobs:
-  build-and-deploy:
+  # test:
+  #   runs-on: ubuntu-latest
+  #   defaults:
+  #     run:
+  #       working-directory: ./User_Service
+  #   steps:
+  #     - uses: actions/checkout@v2
+      
+  #     - name: Debug - Print Working Directory
+  #       run: |
+  #         pwd
+  #         ls -la
+  #         echo "Current directory structure:"
+  #         tree -a
+      
+  #     - name: Set up Node.js
+  #       uses: actions/setup-node@v2
+  #       with:
+  #         node-version: '18'
+          
+  #     - name: Install dependencies
+  #       run: npm ci
+          
+  #     - name: Run tests
+  #       run: npm test
+
+  build-and-push:
+    # needs: test    # Comentado pois o job de teste está comentado
     runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        include:
+          - service_dir: User_Service
+            image_name: user-service
+          - service_dir: Shopping_Service
+            image_name: shopping-service
+          - service_dir: Home_Task_Service
+            image_name: home-task-service
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v2
+      
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: pereira6
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+          
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: ./${{ matrix.service_dir }}
+          push: true
+          tags: pereira6/${{ matrix.image_name }}:latest
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-
-    - name: Login to Docker Hub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
-
-    - name: Build and push User Service
-      uses: docker/build-push-action@v5
-      with:
-        context: ./User_Service
-        push: true
-        tags: ${{ env.REGISTRY }}/user-service:latest
-
-    - name: Build and push Shopping Service
-      uses: docker/build-push-action@v5
-      with:
-        context: ./Shopping_Service
-        push: true
-        tags: ${{ env.REGISTRY }}/shopping-service:latest
-
-    - name: Build and push Home Task Service
-      uses: docker/build-push-action@v5
-      with:
-        context: ./Home_Task_Service
-        push: true
-        tags: ${{ env.REGISTRY }}/home-task-service:latest
-
-    - name: Set up Minikube
-      uses: medyagh/setup-minikube@master
-      with:
-        minikube-version: ${{ env.MINIKUBE_VERSION }}
-
-    - name: Deploy to Minikube
-      run: |
-        kubectl apply -f kubernetes/configmaps/
-        kubectl apply -f kubernetes/secrets/
-        kubectl apply -f kubernetes/user-service/
-        kubectl apply -f kubernetes/shopping-service/
-        kubectl apply -f kubernetes/home-task-service/
-
-    - name: Wait for services
-      run: |
-        sleep 30s
-        for pod in $(kubectl get pods -o name); do
-          echo "=== Logs for $pod ==="
-          kubectl logs $pod
-          echo "=== End logs for $pod ==="
-        done
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v1
+      
+      - name: Set up Minikube
+        uses: medyagh/setup-minikube@master
+      
+      - name: Deploy to Minikube
+        run: |
+          minikube start
+          
+          # Deploy databases first
+          echo "Deploying databases..."
+          kubectl apply -f kubernetes/user-service/postgres.yaml
+          kubectl apply -f kubernetes/shopping-service/postgres.yaml
+          kubectl apply -f kubernetes/home-task-service/postgres.yaml
+          
+          # Wait for databases to be ready
+          echo "Waiting for databases to be ready..."
+          kubectl wait --for=condition=ready pod -l app=postgres-user --timeout=120s
+          kubectl wait --for=condition=ready pod -l app=postgres-shopping --timeout=120s
+          kubectl wait --for=condition=ready pod -l app=postgres-hometask --timeout=120s
+          
+          # Deploy services
+          echo "Deploying services..."
+          kubectl apply -f kubernetes/user-service/deployment.yaml
+          kubectl apply -f kubernetes/shopping-service/deployment.yaml
+          kubectl apply -f kubernetes/home-task-service/deployment.yaml
+          
+          # Wait for services to be ready
+          echo "Waiting for services to be ready..."
+          kubectl wait --for=condition=ready pod -l app=user-service --timeout=120s
+          kubectl wait --for=condition=ready pod -l app=shopping-service --timeout=120s
+          kubectl wait --for=condition=ready pod -l app=home-task-service --timeout=120s
+          
+          # Show status
+          echo "Deployment complete. Showing status:"
+          kubectl get pods
+          kubectl get services
+      - name: Test Services
+        if: always()
+        run: |
+          # Get Minikube IP
+          MINIKUBE_IP=$(minikube ip)
+          
+          echo "Minikube IP: ${MINIKUBE_IP}"
+          echo "All Services:"
+          kubectl get services
+          
+          echo "All Pods:"
+          kubectl get pods
+          
+          # Aguardar um pouco para os serviços estarem prontos
+          echo "Waiting for services to be fully ready..."
+          sleep 30
+          
+          echo "Testing User Service..."
+          curl -v "http://${MINIKUBE_IP}:30002/api/user" || true
+          
+          echo "Testing Shopping Service..."
+          curl -v "http://${MINIKUBE_IP}:30001/api/shopping-lists" || true
+          
+          echo "Testing Home Task Service..."
+          curl -v "http://${MINIKUBE_IP}:30000/api/residents" || true
