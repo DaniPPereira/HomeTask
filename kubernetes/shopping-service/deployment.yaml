@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: shopping-service
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: shopping-service
@@ -29,6 +29,8 @@ spec:
           value: "grupo6_admin"
         - name: DB_PASSWORD
           value: "grupo6"
+        - name: PORT
+          value: "3001"
         resources:
           requests:
             memory: "64Mi"
@@ -42,10 +44,9 @@ kind: Service
 metadata:
   name: shopping-service
 spec:
-  type: NodePort
+  type: LoadBalancer
   selector:
     app: shopping-service
   ports:
     - port: 3001
-      targetPort: 3001
-      nodePort: 30001 
+      targetPort: 3001 
