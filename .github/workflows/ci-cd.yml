@@ -163,13 +163,13 @@ jobs:
           
           echo "\n=== Pod Logs ==="
           echo "User Service Logs:"
-          kubectl logs -l app=user-service --previous
+          kubectl logs -l app=user-service
           
           echo "\nShopping Service Logs:"
-          kubectl logs -l app=shopping-service --previous
+          kubectl logs -l app=shopping-service
           
           echo "\nHome Task Service Logs:"
-          kubectl logs -l app=home-task-service --previous
+          kubectl logs -l app=home-task-service
           
           echo "\n=== Container Image Inspection ==="
           echo "User Service Image:"
