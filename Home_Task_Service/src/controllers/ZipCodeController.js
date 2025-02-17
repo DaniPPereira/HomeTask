@@ -20,7 +20,7 @@
  */
 
 const express = require('express');
-const { getAllZipCodes } = require('../usecases/ZipCode/getZipCodes');
+const { getZipCodes } = require('../usecases/Zipcode');
 const router = express.Router();
 
 
@@ -51,7 +51,7 @@ const router = express.Router();
  */
 router.get('/', async (req, res, next) => {
     try {
-        const zipCodes = await getAllZipCodes();
+        const zipCodes = await getZipCodes();
         res.status(200).json({
             success: true,
             message: 'Zip codes fetched successfully',
