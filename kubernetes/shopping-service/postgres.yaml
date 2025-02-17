@@ -20,11 +20,20 @@ spec:
         - containerPort: 5432
         env:
         - name: POSTGRES_DB
-          value: shopping_service_db
+          valueFrom:
+            configMapKeyRef:
+              name: database-config
+              key: SHOPPING_DB_NAME
         - name: POSTGRES_USER
-          value: grupo6_admin
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: POSTGRES_USER
         - name: POSTGRES_PASSWORD
-          value: grupo6
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: POSTGRES_PASSWORD
         volumeMounts:
         - name: postgres-storage
           mountPath: /var/lib/postgresql/data
