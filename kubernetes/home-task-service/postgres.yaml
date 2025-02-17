@@ -22,9 +22,9 @@ spec:
         - name: POSTGRES_DB
           value: home_task_db
         - name: POSTGRES_USER
-          value: grupo6_admin
+          value: "Daniel"
         - name: POSTGRES_PASSWORD
-          value: grupo6
+          value: "9394"
         volumeMounts:
         - name: postgres-storage
           mountPath: /var/lib/postgresql/data
@@ -36,6 +36,19 @@ spec:
       resources:
         requests:
           storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-hometask
+spec:
+  selector:
+    app: postgres-hometask
+  ports:
+    - port: 5434
+      targetPort: 5432
+      nodePort: 30434
+  type: NodePort
 ---
 apiVersion: v1
 kind: Service

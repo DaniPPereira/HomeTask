@@ -1,10 +1,4 @@
--- Tabela de Categorias de Itens
-CREATE TABLE IF NOT EXISTS itemcategory (
-    id SERIAL PRIMARY KEY,
-    description VARCHAR(255) NOT NULL
-);
-
--- Tabela de Listas de Compras
+-- Primeiro, criar a tabela de listas de compras
 CREATE TABLE IF NOT EXISTS shoppinglist (
     id SERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
@@ -13,7 +7,13 @@ CREATE TABLE IF NOT EXISTS shoppinglist (
     endDate TIMESTAMP WITH TIME ZONE
 );
 
--- Tabela de Itens na Lista de Compras
+-- Depois, criar a tabela de categorias
+CREATE TABLE IF NOT EXISTS itemcategory (
+    id SERIAL PRIMARY KEY,
+    description VARCHAR(255) NOT NULL
+);
+
+-- Por último, criar a tabela de itens com as foreign keys
 CREATE TABLE IF NOT EXISTS shoppingitem (
     id SERIAL PRIMARY KEY,
     description VARCHAR(255) NOT NULL,
@@ -26,10 +26,8 @@ CREATE TABLE IF NOT EXISTS shoppingitem (
     FOREIGN KEY (itemCategoryId) REFERENCES itemcategory(id)
 );
 
--- Índices opcionais para melhorar o desempenho
-CREATE INDEX idx_shopping_list_home ON shoppinglist (homeId);
-CREATE INDEX idx_shopping_item_list ON shoppingitem (shoppingListId);
-CREATE INDEX idx_shopping_item_category ON shoppingitem (itemCategoryId);
+-- Índices para melhorar performance
+CREATE INDEX IF NOT EXISTS idx_shopping_item_list ON shoppingitem (shoppingListId);
+CREATE INDEX IF NOT EXISTS idx_shopping_item_category ON shoppingitem (itemCategoryId);
 
--- Mensagem de conclusão
-DO $$ BEGIN RAISE NOTICE 'Script de criação da base de dados concluído com sucesso.'; END $$;
+

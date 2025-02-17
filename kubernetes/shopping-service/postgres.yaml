@@ -15,25 +15,16 @@ spec:
     spec:
       containers:
       - name: postgres
-        image: postgres:16-alpine
+        image: postgres:latest
         ports:
         - containerPort: 5432
         env:
-        - name: POSTGRES_DB
-          valueFrom:
-            configMapKeyRef:
-              name: database-config
-              key: SHOPPING_DB_NAME
         - name: POSTGRES_USER
-          valueFrom:
-            secretKeyRef:
-              name: postgres-credentials
-              key: POSTGRES_USER
+          value: "Daniel"
         - name: POSTGRES_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: postgres-credentials
-              key: POSTGRES_PASSWORD
+          value: "9394"
+        - name: POSTGRES_DB
+          value: "shopping_service_db"
         volumeMounts:
         - name: postgres-storage
           mountPath: /var/lib/postgresql/data
@@ -45,6 +36,19 @@ spec:
       resources:
         requests:
           storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-shopping
+spec:
+  selector:
+    app: postgres-shopping
+  ports:
+    - port: 5433        # porta do serviço
+      targetPort: 5432  # porta do container
+      nodePort: 30433   # porta externa
+  type: NodePort
 ---
 apiVersion: v1
 kind: Service
