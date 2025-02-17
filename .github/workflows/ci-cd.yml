@@ -140,52 +140,48 @@ jobs:
           echo "Testing Home Task Service..."
           curl -v "http://${MINIKUBE_IP}:30000/api/tasks" || true
 
-      - name: Debug Container Contents
+      - name: Debug Deployment Status
         run: |
-          echo "=== Debugging Container Contents ==="
+          echo "=== Debugging Deployment Status ==="
           
-          echo "\n=== User Service ==="
-          kubectl exec -it $(kubectl get pod -l app=user-service -o jsonpath='{.items[0].metadata.name}') -- sh -c '
-            echo "Directory structure:";
-            ls -la /usr/src/app;
-            echo "\nPackage.json:";
-            cat /usr/src/app/package.json;
-            echo "\nNode Modules:";
-            ls -la /usr/src/app/node_modules;
-            echo "\nSource files:";
-            ls -la /usr/src/app/src;
-          '
+          echo "\n=== Pod Status ==="
+          kubectl get pods
           
-          echo "\n=== Shopping Service ==="
-          kubectl exec -it $(kubectl get pod -l app=shopping-service -o jsonpath='{.items[0].metadata.name}') -- sh -c '
-            echo "Directory structure:";
-            ls -la /usr/src/app;
-            echo "\nPackage.json:";
-            cat /usr/src/app/package.json;
-            echo "\nNode Modules:";
-            ls -la /usr/src/app/node_modules;
-            echo "\nSource files:";
-            ls -la /usr/src/app/src;
-          '
+          echo "\n=== Describe Pods ==="
+          echo "User Service:"
+          kubectl describe pod -l app=user-service
           
-          echo "\n=== Home Task Service ==="
-          kubectl exec -it $(kubectl get pod -l app=home-task-service -o jsonpath='{.items[0].metadata.name}') -- sh -c '
-            echo "Directory structure:";
-            ls -la /usr/src/app;
-            echo "\nPackage.json:";
-            cat /usr/src/app/package.json;
-            echo "\nNode Modules:";
-            ls -la /usr/src/app/node_modules;
-            echo "\nSource files:";
-            ls -la /usr/src/app/src;
-          '
+          echo "\nShopping Service:"
+          kubectl describe pod -l app=shopping-service
+          
+          echo "\nHome Task Service:"
+          kubectl describe pod -l app=home-task-service
           
           echo "\n=== Pod Logs ==="
           echo "User Service Logs:"
-          kubectl logs -l app=user-service
+          kubectl logs -l app=user-service --previous
           
           echo "\nShopping Service Logs:"
-          kubectl logs -l app=shopping-service
+          kubectl logs -l app=shopping-service --previous
           
           echo "\nHome Task Service Logs:"
-          kubectl logs -l app=home-task-service
+          kubectl logs -l app=home-task-service --previous
+          
+          echo "\n=== Container Image Inspection ==="
+          echo "User Service Image:"
+          docker pull pereira6/user-service:latest
+          docker inspect pereira6/user-service:latest
+          
+          echo "\nShopping Service Image:"
+          docker pull pereira6/shopping-service:latest
+          docker inspect pereira6/shopping-service:latest
+          
+          echo "\nHome Task Service Image:"
+          docker pull pereira6/home-task-service:latest
+          docker inspect pereira6/home-task-service:latest
+          
+          echo "\n=== Service Status ==="
+          kubectl get services
+          
+          echo "\n=== Node Status ==="
+          kubectl describe node minikube
