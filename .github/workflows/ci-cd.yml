@@ -47,12 +47,23 @@ jobs:
         include:
           - service_dir: User_Service
             image_name: user-service
+            dockerfile: Dockerfile
           - service_dir: Shopping_Service
             image_name: shopping-service
+            dockerfile: Dockerfile
           - service_dir: Home_Task_Service
             image_name: home-task-service
+            dockerfile: Dockerfile
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
+      
+      - name: Debug - Print Working Directory
+        run: |
+          pwd
+          ls -la
+          echo "Docker directory contents:"
+          ls -la ${{ matrix.service_dir }}/docker/
       
       - name: Login to Docker Hub
         uses: docker/login-action@v1
@@ -67,6 +78,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: ./${{ matrix.service_dir }}
+          file: ./${{ matrix.service_dir }}/docker/${{ matrix.dockerfile }}
           push: true
           tags: pereira6/${{ matrix.image_name }}:latest
 
@@ -78,6 +90,9 @@ jobs:
       
       - name: Set up kubectl
         uses: azure/setup-kubectl@v1
+      
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
       
       - name: Set up Minikube
         uses: medyagh/setup-minikube@master
@@ -92,7 +107,7 @@ jobs:
           kubectl apply -f kubernetes/shopping-service/postgres.yaml
           kubectl apply -f kubernetes/home-task-service/postgres.yaml
           
-          # Wait for databases to be ready (ajustado os labels)
+          # Wait for databases to be ready
           echo "Waiting for databases to be ready..."
           kubectl wait --for=condition=ready pod/postgres-user-0 --timeout=120s
           kubectl wait --for=condition=ready pod/postgres-shopping-0 --timeout=120s
@@ -114,44 +129,62 @@ jobs:
           echo "Deployment complete. Showing status:"
           kubectl get pods
           kubectl get services
+
       - name: Test Services
-        if: always()
         run: |
-          # Get Minikube IP
+          # Esperar serviços estarem prontos
+          echo "Waiting for services to be ready..."
+          kubectl wait --for=condition=ready pod -l app=user-service --timeout=300s
+          kubectl wait --for=condition=ready pod -l app=shopping-service --timeout=300s
+          kubectl wait --for=condition=ready pod -l app=home-task-service --timeout=300s
+          
+          # Pegar IP do minikube
           MINIKUBE_IP=$(minikube ip)
           
-          echo "Minikube IP: ${MINIKUBE_IP}"
-          echo "All Services:"
+          echo "Testing services at: $MINIKUBE_IP"
+          
+          # Teste User Service
+          echo "1. Testing User Service registration..."
+          curl -v -X POST "http://${MINIKUBE_IP}:30002/api/user/" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "name": "Test User",
+              "email": "test@example.com",
+              "password": "Test@123",
+              "roles": "user"
+            }'
+          
+          # Teste Shopping Service
+          echo "2. Testing Shopping Service..."
+          curl -v -X POST "http://${MINIKUBE_IP}:30001/api/shopping/" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "name": "Test Item",
+              "quantity": 1
+            }'
+          
+          # Teste Home Task Service
+          echo "3. Testing Home Task Service..."
+          curl -v -X POST "http://${MINIKUBE_IP}:30000/api/tasks/" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "title": "Test Task",
+              "description": "Test Description"
+            }'
+          
+          # Mostrar status dos pods
+          echo "=== Pod Status ==="
+          kubectl get pods --all-namespaces
+          
+          echo "=== Service Status ==="
           kubectl get services
           
-          echo "All Pods:"
-          kubectl get pods
+          echo "=== Pod Logs ==="
+          echo "User Service Logs:"
+          kubectl logs -l app=user-service --tail=20
           
-          # Start minikube tunnel
-          echo "Starting minikube tunnel..."
-          minikube tunnel &
-          sleep 10
+          echo "Shopping Service Logs:"
+          kubectl logs -l app=shopping-service --tail=20
           
-          # Get service URLs
-          echo "Getting service URLs..."
-          USER_PORT=$(kubectl get service user-service -o jsonpath='{.spec.ports[0].port}')
-          SHOPPING_PORT=$(kubectl get service shopping-service -o jsonpath='{.spec.ports[0].port}')
-          HOMETASK_PORT=$(kubectl get service home-task-service -o jsonpath='{.spec.ports[0].port}')
-          
-          echo "Service ports:"
-          echo "User Service: ${USER_PORT}"
-          echo "Shopping Service: ${SHOPPING_PORT}"
-          echo "Home Task Service: ${HOMETASK_PORT}"
-          
-          # Aguardar um pouco para os serviços estarem prontos
-          echo "Waiting for services to be fully ready..."
-          sleep 30
-          
-          echo "Testing User Service..."
-          curl -v "http://${MINIKUBE_IP}:${USER_PORT}/health" || true
-          
-          echo "Testing Shopping Service..."
-          curl -v "http://${MINIKUBE_IP}:${SHOPPING_PORT}/health" || true
-          
-          echo "Testing Home Task Service..."
-          curl -v "http://${MINIKUBE_IP}:${HOMETASK_PORT}/health" || true
+          echo "Home Task Service Logs:"
+          kubectl logs -l app=home-task-service --tail=20
