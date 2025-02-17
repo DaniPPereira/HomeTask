@@ -8,7 +8,7 @@ const {
     deleteTaskCategory,
     getTaskCategoryById,
     getAllTaskCategories,
-} = require('../usecases/taskCategory');
+} = require('../usecases/TaskCategory');
 const router = express.Router();
 
 /**

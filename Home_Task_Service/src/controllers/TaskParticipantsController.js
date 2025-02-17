@@ -7,7 +7,7 @@ const {
     deleteTaskParticipant,
     getTaskParticipantsByTaskId,
     getTaskParticipantsByUserId,
-} = require('../usecases/taskParticipants');
+} = require('../usecases/TaskParticipants');
 const router = express.Router();
 
 /**
