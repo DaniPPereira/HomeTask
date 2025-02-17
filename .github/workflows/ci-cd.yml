@@ -131,11 +131,11 @@ jobs:
           echo "Waiting for services to be fully ready..."
           sleep 30
           
-          echo "Testing User Service Health..."
-          curl -v "http://${MINIKUBE_IP}:30002/health" || true
+          echo "Testing User Service..."
+          curl -v "http://${MINIKUBE_IP}:30002/api/users" || true
           
-          echo "Testing Shopping Service Health..."
-          curl -v "http://${MINIKUBE_IP}:30001/health" || true
+          echo "Testing Shopping Service..."
+          curl -v "http://${MINIKUBE_IP}:30001/api/shopping" || true
           
-          echo "Testing Home Task Service Health..."
-          curl -v "http://${MINIKUBE_IP}:30000/health" || true
+          echo "Testing Home Task Service..."
+          curl -v "http://${MINIKUBE_IP}:30000/api/tasks" || true
