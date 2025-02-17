@@ -114,28 +114,25 @@ jobs:
           echo "Deployment complete. Showing status:"
           kubectl get pods
           kubectl get services
-      - name: Test Services
-        if: always()
+      - name: Test API
         run: |
-          # Get Minikube IP
+          # Esperar API estar pronta
+          echo "Waiting for API to be ready..."
+          kubectl wait --for=condition=ready pod -l app=user-service --timeout=300s
+          
+          # Pegar IP do minikube
           MINIKUBE_IP=$(minikube ip)
+          API_URL="http://${MINIKUBE_IP}:30000"
           
-          echo "Minikube IP: ${MINIKUBE_IP}"
-          echo "All Services:"
-          kubectl get services
+          echo "Testing API at: $API_URL"
           
-          echo "All Pods:"
-          kubectl get pods
-          
-          # Aguardar um pouco para os serviços estarem prontos
-          echo "Waiting for services to be fully ready..."
-          sleep 30
-          
-          echo "Testing User Service..."
-          curl -v "http://${MINIKUBE_IP}:30002/api/users" || true
-          
-          echo "Testing Shopping Service..."
-          curl -v "http://${MINIKUBE_IP}:30001/api/shopping" || true
-          
-          echo "Testing Home Task Service..."
-          curl -v "http://${MINIKUBE_IP}:30000/api/tasks" || true
+          # Teste com mais informações
+          echo "1. Testing registration..."
+          curl -v -X POST "$API_URL/api/user/" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "name": "Test User",
+              "email": "test@example.com",
+              "password": "Test@123",
+              "roles": "user"
+            }'
