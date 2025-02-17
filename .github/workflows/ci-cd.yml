@@ -170,8 +170,13 @@ jobs:
       - name: Set up kubectl
         uses: azure/setup-kubectl@v1
       
+      - name: Set up Minikube
+        uses: medyagh/setup-minikube@master
+      
       - name: Deploy Prometheus and Grafana
         run: |
+          minikube start
+          
           kubectl apply -f kubernetes/monitoring/prometheus-config.yaml
           kubectl apply -f kubernetes/monitoring/prometheus.yaml
           kubectl apply -f kubernetes/monitoring/grafana.yaml
