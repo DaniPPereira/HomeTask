@@ -147,13 +147,6 @@ jobs:
           echo $LOGIN_RESPONSE | jq .
           
           echo "=== Testing Home Task Service ==="
-          echo "Checking service status..."
-          kubectl get services
-          echo "Checking pod status..."
-          kubectl get pods
-          echo "Checking pod logs..."
-          kubectl logs $(kubectl get pods -l app=home-task-service -o name)
-          
           echo "1. Creating new home..."
           HOME_RESPONSE=$(curl -v -X POST "http://${MINIKUBE_IP}:30000/api/homes" \
             -H "Content-Type: application/json" \
