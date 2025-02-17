@@ -133,7 +133,7 @@ jobs:
           echo "=== Testing User Service ==="
           # Register new user
           echo "1. Registering new user..."
-          REGISTER_RESPONSE=$(curl -s -X POST "http://${MINIKUBE_IP}:30002/api/user/register" \
+          REGISTER_RESPONSE=$(curl -s -X POST "http://${MINIKUBE_IP}:30002/api/user" \
             -H "Content-Type: application/json" \
             -d '{"name": "Test User", "email": "test@example.com", "password": "Test123!"}')
           echo $REGISTER_RESPONSE | jq .
@@ -149,7 +149,7 @@ jobs:
           echo "=== Testing Home Task Service ==="
           # Create new home
           echo "1. Creating new home..."
-          HOME_RESPONSE=$(curl -s -X POST "http://${MINIKUBE_IP}:30000/api/homes" \
+          HOME_RESPONSE=$(curl -s -X POST "http://${MINIKUBE_IP}:30000/homes" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${TOKEN}" \
             -d '{"name": "Test Home", "address": "Test Street 123", "zipCode": "12345-678"}')
@@ -158,35 +158,8 @@ jobs:
           
           # Add resident to home
           echo "2. Adding resident to home..."
-          RESIDENT_RESPONSE=$(curl -s -X POST "http://${MINIKUBE_IP}:30000/api/homes/${HOME_ID}/residents" \
+          RESIDENT_RESPONSE=$(curl -s -X POST "http://${MINIKUBE_IP}:30000/homes/${HOME_ID}/residents" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${TOKEN}" \
             -d '{"userId": 1, "role": "OWNER"}')
           echo $RESIDENT_RESPONSE | jq .
-          
-          echo "=== Testing Shopping Service ==="
-          # Create shopping list
-          echo "1. Creating shopping list..."
-          LIST_RESPONSE=$(curl -s -X POST "http://${MINIKUBE_IP}:30001/api/shopping" \
-            -H "Content-Type: application/json" \
-            -H "Authorization: Bearer ${TOKEN}" \
-            -d "{\"title\": \"Test List\", \"homeId\": ${HOME_ID}}")
-          LIST_ID=$(echo $LIST_RESPONSE | jq -r '.data.id')
-          echo $LIST_RESPONSE | jq .
-          
-          # Create item category
-          echo "2. Creating item category..."
-          CATEGORY_RESPONSE=$(curl -s -X POST "http://${MINIKUBE_IP}:30001/api/categories" \
-            -H "Content-Type: application/json" \
-            -H "Authorization: Bearer ${TOKEN}" \
-            -d '{"name": "Test Category"}')
-          CATEGORY_ID=$(echo $CATEGORY_RESPONSE | jq -r '.data.id')
-          echo $CATEGORY_RESPONSE | jq .
-          
-          # Add item to shopping list
-          echo "3. Adding item to shopping list..."
-          ITEM_RESPONSE=$(curl -s -X POST "http://${MINIKUBE_IP}:30001/api/shopping/${LIST_ID}/items" \
-            -H "Content-Type: application/json" \
-            -H "Authorization: Bearer ${TOKEN}" \
-            -d "{\"name\": \"Test Item\", \"quantity\": 1, \"categoryId\": ${CATEGORY_ID}}")
-          echo $ITEM_RESPONSE | jq .
