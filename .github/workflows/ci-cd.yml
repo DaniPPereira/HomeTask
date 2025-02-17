@@ -12,7 +12,33 @@ env:
   DOCKER_IMAGE: user-service
   DOCKER_TAG: latest
 
-jobs: 
+jobs:
+  # test:
+  #   runs-on: ubuntu-latest
+  #   defaults:
+  #     run:
+  #       working-directory: ./User_Service
+  #   steps:
+  #     - uses: actions/checkout@v2
+      
+  #     - name: Debug - Print Working Directory
+  #       run: |
+  #         pwd
+  #         ls -la
+  #         echo "Current directory structure:"
+  #         tree -a
+      
+  #     - name: Set up Node.js
+  #       uses: actions/setup-node@v2
+  #       with:
+  #         node-version: '18'
+          
+  #     - name: Install dependencies
+  #       run: npm ci
+          
+  #     - name: Run tests
+  #       run: npm test
+
   build-and-push:
     # needs: test    # Comentado pois o job de teste está comentado
     runs-on: ubuntu-latest
@@ -43,6 +69,7 @@ jobs:
           context: ./${{ matrix.service_dir }}
           push: true
           tags: pereira6/${{ matrix.image_name }}:latest
+
 
   deploy:
     needs: build-and-push
