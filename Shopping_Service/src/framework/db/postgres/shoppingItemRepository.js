@@ -1,6 +1,5 @@
 // src/repositories/shoppingItemRepository.js
 const  db  = require('./models');
-const ShoppingItem = require('../../../entities/shoppingItem');
 
 class ShoppingItemRepository {
     async create(itemData) {

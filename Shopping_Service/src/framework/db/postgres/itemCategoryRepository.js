@@ -1,6 +1,5 @@
 // src/repositories/itemCategoryRepository.js
 const db  = require('./models');
-const ItemCategory = require('../../../entities/ItemCategory');
 
 class ItemCategoryRepository {
     async create(categoryData) {
