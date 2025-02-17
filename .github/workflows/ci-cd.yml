@@ -11,7 +11,7 @@ env:
   DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
   DOCKER_IMAGE: user-service
   DOCKER_TAG: latest
-
+#teste
 jobs:
   # test:
   #   runs-on: ubuntu-latest
@@ -69,7 +69,6 @@ jobs:
           context: ./${{ matrix.service_dir }}
           push: true
           tags: pereira6/${{ matrix.image_name }}:latest
-
 
   deploy:
     needs: build-and-push
