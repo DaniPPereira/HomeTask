@@ -5,7 +5,6 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const { db, initializeModels } = require('./framework/db/postgres/models');
 const { swaggerDocs, swaggerUi } = require('../public/swagger');
-const cors = require('cors');
 const taskRoutes = require('./routes/taskRoutes');
 
 // Swagger UI for API documentation
@@ -20,7 +19,6 @@ const taskRoutes = require('./routes/taskRoutes');
 
         const app = express();
 
-        app.use(cors());
         app.use(express.json());
 
         app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));

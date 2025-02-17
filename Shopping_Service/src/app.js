@@ -4,7 +4,6 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const sequelize = require('./framework/db/postgres/config');
 const { swaggerDocs, swaggerUi } = require('../public/swagger');
-const cors = require('cors');
 
 // Load environment variables from .env
 require('dotenv').config();
