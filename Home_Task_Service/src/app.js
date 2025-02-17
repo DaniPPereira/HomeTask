@@ -22,12 +22,12 @@ const { swaggerDocs, swaggerUi } = require('../public/swagger');
 
         app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
         // Importar controladores
-        const taskRouter = require('./controllers/taskController');
-        const taskCategoryRouter = require('./controllers/taskCategoryController');
-        const taskParticipantsRouter = require('./controllers/taskParticipantsController');
-        const homeRouter = require('./controllers/homeController');
-        const zipCodeRouter = require('./controllers/zipCodeController');
-        const residentsRouter = require('./controllers/residentsController');
+        const taskRouter = require('./controllers/taskRoutes');
+        const taskCategoryRouter = require('./controllers/TaskCategoryController');
+        const taskParticipantsRouter = require('./controllers/TaskParticipantsController');
+        const homeRouter = require('./controllers/HomeController');
+        const zipCodeRouter = require('./controllers/ZipCodeController');
+        const residentsRouter = require('./controllers/ResidentsController');
 
         // Definir rotas
         app.use('/tasks', taskRouter);
