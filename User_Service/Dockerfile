@@ -1,4 +1,4 @@
-FROM ghcr.io/nodejs/node:18-alpine
+FROM node:18.19-alpine3.18
 
 WORKDIR /usr/src/app
 

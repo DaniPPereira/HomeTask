@@ -1,5 +1,5 @@
 # Use uma imagem base Node.js
-FROM ghcr.io/nodejs/node:18-alpine
+FROM node:18.19-alpine3.18
 
 # Defina o diretório de trabalho
 WORKDIR /usr/src/app
