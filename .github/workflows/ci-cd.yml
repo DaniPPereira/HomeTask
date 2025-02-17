@@ -86,17 +86,22 @@ jobs:
         run: |
           minikube start
           
-          # Deploy databases first
+          # Apply ConfigMaps and Secrets first
+          echo "Applying ConfigMaps and Secrets..."
+          kubectl apply -f kubernetes/configmaps/
+          kubectl apply -f kubernetes/secrets/
+          
+          # Deploy databases
           echo "Deploying databases..."
           kubectl apply -f kubernetes/user-service/postgres.yaml
           kubectl apply -f kubernetes/shopping-service/postgres.yaml
           kubectl apply -f kubernetes/home-task-service/postgres.yaml
           
-          # Wait for databases to be ready
+          # Wait for databases with increased timeout
           echo "Waiting for databases to be ready..."
-          kubectl wait --for=condition=ready pod -l app=postgres-user --timeout=120s
-          kubectl wait --for=condition=ready pod -l app=postgres-shopping --timeout=120s
-          kubectl wait --for=condition=ready pod -l app=postgres-hometask --timeout=120s
+          kubectl wait --for=condition=ready pod -l app=postgres-user --timeout=300s
+          kubectl wait --for=condition=ready pod -l app=postgres-shopping --timeout=300s
+          kubectl wait --for=condition=ready pod -l app=postgres-hometask --timeout=300s
           
           # Deploy services
           echo "Deploying services..."
@@ -106,9 +111,9 @@ jobs:
           
           # Wait for services to be ready
           echo "Waiting for services to be ready..."
-          kubectl wait --for=condition=ready pod -l app=user-service --timeout=120s
-          kubectl wait --for=condition=ready pod -l app=shopping-service --timeout=120s
-          kubectl wait --for=condition=ready pod -l app=home-task-service --timeout=120s
+          kubectl wait --for=condition=ready pod -l app=user-service --timeout=300s
+          kubectl wait --for=condition=ready pod -l app=shopping-service --timeout=300s
+          kubectl wait --for=condition=ready pod -l app=home-task-service --timeout=300s
           
           # Show status
           echo "Deployment complete. Showing status:"
@@ -139,7 +144,6 @@ jobs:
           
           echo "Testing Home Task Service..."
           curl -v "http://${MINIKUBE_IP}:30000/api/residents" || true
-
       - name: Debug Deployment Status
         run: |
           echo "=== Debugging Deployment Status ==="
@@ -185,7 +189,6 @@ jobs:
           
           echo "\n=== Node Status ==="
           kubectl describe node minikube
-
       - name: Verify Project Structure
         run: |
           echo "=== Verifying Project Structure ==="
@@ -217,3 +220,17 @@ jobs:
           
           cd ../Home_Task_Service && \
           node -e "try { require('./src/app.js'); } catch(e) { console.error('Home Task Service:', e); }"
+      - name: Check Cluster Resources
+        run: |
+          echo "Checking cluster resources..."
+          kubectl describe nodes
+          kubectl get events --sort-by=.metadata.creationTimestamp
+      - name: Check Pod Logs
+        if: failure()
+        run: |
+          echo "Checking pod logs..."
+          for pod in $(kubectl get pods -o name); do
+            echo "=== Logs for $pod ==="
+            kubectl logs $pod
+            echo "=== End logs for $pod ==="
+          done
