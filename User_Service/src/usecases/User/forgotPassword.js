@@ -1,6 +1,5 @@
 const crypto = require('crypto');
 const userRepository = require('../../framework/db/postgres/UserRepository');
-const sendEmail = require('../User/emailService');
 
 module.exports = async (email) => {
     // Verifica se o e-mail existe
