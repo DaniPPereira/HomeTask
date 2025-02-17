@@ -1,4 +1,4 @@
-const taskCategoryRepository = require('../../framework/db/postgres/taskCategoryRepository');
+const taskCategoryRepository = require('../../framework/db/postgres/TaskCategoryRepository');
 
 async function getTaskCategoryById({ id }) {
     try {
