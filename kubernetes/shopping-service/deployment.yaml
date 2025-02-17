@@ -17,7 +17,7 @@ spec:
         image: pereira6/shopping-service:latest
         imagePullPolicy: Always
         ports:
-        - containerPort: 3001
+        - containerPort: 3003
         env:
         - name: DB_HOST
           value: "postgres-shopping"
@@ -42,7 +42,7 @@ spec:
               name: postgres-credentials
               key: POSTGRES_PASSWORD
         - name: PORT
-          value: "3001"
+          value: "3003"
         resources:
           requests:
             memory: "64Mi"
@@ -60,6 +60,6 @@ spec:
   selector:
     app: shopping-service
   ports:
-  - port: 3001
-    targetPort: 3001
-    nodePort: 30001 
+  - port: 3003
+    targetPort: 3003
+    nodePort: 30003 
