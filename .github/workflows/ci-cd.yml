@@ -40,7 +40,6 @@ jobs:
   #       run: npm test
 
   build-and-push:
-    # needs: test    # Comentado pois o job de teste está comentado
     runs-on: ubuntu-latest
     strategy:
       matrix:
