@@ -22,7 +22,7 @@ const { swaggerDocs, swaggerUi } = require('../public/swagger');
 
         app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
         // Importar controladores
-        const taskRouter = require('./controllers/taskRoutes');
+        const taskRouter = require('./controllers/TaskController');
         const taskCategoryRouter = require('./controllers/TaskCategoryController');
         const taskParticipantsRouter = require('./controllers/TaskParticipantsController');
         const homeRouter = require('./controllers/HomeController');

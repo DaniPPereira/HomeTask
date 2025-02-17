@@ -8,11 +8,6 @@ const { swaggerDocs, swaggerUi } = require('../public/swagger');
 // Load environment variables from .env
 require('dotenv').config();
 
-// Import routes
-const shoppingListRoutes = require('./controllers/ShoppingListController');
-const shoppingItemRoutes = require('./controllers/ShoppingItemController');
-const itemCategoryRoutes = require('./controllers/ItemCategoryController');
-
 // Initialize Express app
 const app = express();
 
@@ -22,17 +17,15 @@ sequelize
     .then(() => console.log('✅ Database connected successfully!'))
     .catch((err) => console.error('❌ Error connecting to the database:', err));
 
-// Serve static files from the "public" directory
-app.use('/', express.static(path.join(__dirname, 'public')));
-
-// Body parser middleware
-app.use(bodyParser.urlencoded({ extended: true })); // Parse application/x-www-form-urlencoded
-app.use(bodyParser.json()); // Parse application/json
+// Middleware
+app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 // API routes
-app.use('/api/shopping-lists', shoppingListRoutes); // Shopping List routes
-app.use('/api/shopping-items', shoppingItemRoutes); // Shopping Item routes
-app.use('/api/item-categories', itemCategoryRoutes); // Item Category routes
+app.use('/api/shopping-lists', require('./controllers/ShoppingListController'));
+app.use('/api/shopping-items', require('./controllers/ShoppingItemController'));
+app.use('/api/item-categories', require('./controllers/ItemCategoryController'));
 
 // Swagger UI for API documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
@@ -42,13 +35,12 @@ app.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok', service: 'shopping-service' });
 });
 
-// Handle errors
+// Error handling middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);
-    res.status(err.status || 500).send({
-        error: {
-            message: err.message || 'Internal Server Error',
-        },
+    res.status(err.status || 500).json({
+        success: false,
+        message: err.message || 'Internal Server Error'
     });
 });
 
