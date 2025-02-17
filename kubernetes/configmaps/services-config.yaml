@@ -3,7 +3,8 @@ kind: ConfigMap
 metadata:
   name: services-config
 data:
+  JWT_SECRET: "Grupo6"
   USER_SERVICE_PORT: "3002"
   SHOPPING_SERVICE_PORT: "3001"
-  HOME_TASK_SERVICE_PORT: "3001"
+  HOME_TASK_SERVICE_PORT: "3000"
   DB_PORT: "5432" 
