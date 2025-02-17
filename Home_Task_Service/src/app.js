@@ -5,7 +5,6 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const { db, initializeModels } = require('./framework/db/postgres/models');
 const { swaggerDocs, swaggerUi } = require('../public/swagger');
-const taskRoutes = require('./routes/taskRoutes');
 
 // Swagger UI for API documentation
 
