@@ -29,7 +29,7 @@ const { swaggerDocs, swaggerUi } = require('../public/swagger');
         const zipCodeRouter = require('./controllers/ZipCodeController');
         const residentsRouter = require('./controllers/ResidentsController');
 
-        // Definir rotas
+        // Definir rotas para cada controlador
         app.use('/tasks', taskRouter);
         app.use('/task-categories', taskCategoryRouter);
         app.use('/task-participants', taskParticipantsRouter);
