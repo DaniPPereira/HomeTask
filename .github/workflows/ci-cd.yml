@@ -12,7 +12,7 @@ env:
   DOCKER_IMAGE: user-service
   DOCKER_TAG: latest
 
-jobs: #inicio
+jobs: 
   build-and-push:
     # needs: test    # Comentado pois o job de teste está comentado
     runs-on: ubuntu-latest
