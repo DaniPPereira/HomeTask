@@ -148,7 +148,7 @@ jobs:
           
           echo "=== Testing Home Task Service ==="
           echo "1. Creating new home..."
-          HOME_RESPONSE=$(curl -s -X POST "http://${MINIKUBE_IP}:30000/homes" \
+          HOME_RESPONSE=$(curl -s -X POST "http://${MINIKUBE_IP}:30000/api/homes" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${TOKEN}" \
             -d '{"name":"Casa de Férias","address":"Rua das Amoras","zipCodeId":1,"userId":1}')
@@ -156,7 +156,7 @@ jobs:
           HOME_ID=$(echo $HOME_RESPONSE | jq -r '.data.id')
           
           echo "2. Adding resident to home..."
-          RESIDENT_RESPONSE=$(curl -s -X POST "http://${MINIKUBE_IP}:30000/residents" \
+          RESIDENT_RESPONSE=$(curl -s -X POST "http://${MINIKUBE_IP}:30000/api/residents" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${TOKEN}" \
             -d "{\"homeId\":${HOME_ID},\"userId\":1}")
