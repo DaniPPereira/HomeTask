@@ -84,7 +84,10 @@ jobs:
       
       - name: Deploy to Minikube
         run: |
-          minikube start
+          minikube start --driver=docker
+          
+          # Enable ingress
+          minikube addons enable ingress
           
           # Deploy databases first
           echo "Deploying databases..."
@@ -94,9 +97,9 @@ jobs:
           
           # Wait for databases to be ready
           echo "Waiting for databases to be ready..."
-          kubectl wait --for=condition=ready pod -l app=postgres-user --timeout=120s
-          kubectl wait --for=condition=ready pod -l app=postgres-shopping --timeout=120s
-          kubectl wait --for=condition=ready pod -l app=postgres-hometask --timeout=120s
+          kubectl wait --for=condition=ready pod -l app=postgres-user --timeout=180s
+          kubectl wait --for=condition=ready pod -l app=postgres-shopping --timeout=180s
+          kubectl wait --for=condition=ready pod -l app=postgres-hometask --timeout=180s
           
           # Deploy services
           echo "Deploying services..."
@@ -104,35 +107,43 @@ jobs:
           kubectl apply -f kubernetes/shopping-service/deployment.yaml
           kubectl apply -f kubernetes/home-task-service/deployment.yaml
           
+          # Show status
+          echo "Initial pod status:"
+          kubectl get pods -o wide
+          
+          # Start tunnel in background
+          echo "Starting minikube tunnel..."
+          minikube tunnel &
+          
           # Wait for services to be ready
           echo "Waiting for services to be ready..."
-          kubectl wait --for=condition=ready pod -l app=user-service --timeout=120s
-          kubectl wait --for=condition=ready pod -l app=shopping-service --timeout=120s
-          kubectl wait --for=condition=ready pod -l app=home-task-service --timeout=120s
+          kubectl wait --for=condition=ready pod -l app=user-service --timeout=180s
+          kubectl wait --for=condition=ready pod -l app=shopping-service --timeout=180s
+          kubectl wait --for=condition=ready pod -l app=home-task-service --timeout=180s
           
-          # Show status
-          echo "Deployment complete. Showing status:"
-          kubectl get pods
-          kubectl get services
-      - name: Test API
-        run: |
-          # Esperar API estar pronta
-          echo "Waiting for API to be ready..."
-          kubectl wait --for=condition=ready pod -l app=user-service --timeout=300s
+          # Show final status
+          echo "Final pod status:"
+          kubectl get pods -o wide
           
-          # Pegar IP do minikube
+          echo "Service status:"
+          kubectl get services -o wide
+          
+          echo "Node status:"
+          kubectl get nodes -o wide
+          
+          # Get service URLs
+          echo "Service URLs:"
+          minikube service list
+          
+          # Test endpoints
+          echo "Testing endpoints..."
           MINIKUBE_IP=$(minikube ip)
-          API_URL="http://${MINIKUBE_IP}:30000"
           
-          echo "Testing API at: $API_URL"
+          echo "Testing User Service..."
+          curl -v "http://${MINIKUBE_IP}:30002/health"
           
-          # Teste com mais informações
-          echo "1. Testing registration..."
-          curl -v -X POST "$API_URL/api/user/" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "name": "Test User",
-              "email": "test@example.com",
-              "password": "Test@123",
-              "roles": "user"
-            }'
+          echo "Testing Shopping Service..."
+          curl -v "http://${MINIKUBE_IP}:30001/health"
+          
+          echo "Testing Home Task Service..."
+          curl -v "http://${MINIKUBE_IP}:30000/health"
