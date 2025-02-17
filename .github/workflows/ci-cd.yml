@@ -147,6 +147,13 @@ jobs:
           echo $LOGIN_RESPONSE | jq .
           
           echo "=== Testing Home Task Service ==="
+          echo "Checking service status..."
+          kubectl get services
+          echo "Checking pod status..."
+          kubectl get pods
+          echo "Checking pod logs..."
+          kubectl logs $(kubectl get pods -l app=home-task-service -o name)
+          
           echo "1. Creating new home..."
           HOME_RESPONSE=$(curl -v -X POST "http://${MINIKUBE_IP}:30000/api/homes" \
             -H "Content-Type: application/json" \
@@ -172,7 +179,7 @@ jobs:
 
           echo "=== Testing Shopping Service ==="
           echo "1. Creating shopping list..."
-          LIST_RESPONSE=$(curl -s -X POST "http://${MINIKUBE_IP}:30001/api/shopping-lists" \
+          LIST_RESPONSE=$(curl -s -X POST "http://${MINIKUBE_IP}:30003/api/shopping-lists" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${TOKEN}" \
             -d "{\"title\":\"Minha Lista\",\"homeId\":${HOME_ID}}")
@@ -180,7 +187,7 @@ jobs:
           LIST_ID=$(echo $LIST_RESPONSE | jq -r '.data.id')
 
           echo "2. Creating item category..."
-          CATEGORY_RESPONSE=$(curl -s -X POST "http://${MINIKUBE_IP}:30001/api/item-categories" \
+          CATEGORY_RESPONSE=$(curl -s -X POST "http://${MINIKUBE_IP}:30003/api/item-categories" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${TOKEN}" \
             -d '{"description":"Groceries"}')
@@ -188,7 +195,7 @@ jobs:
           CATEGORY_ID=$(echo $CATEGORY_RESPONSE | jq -r '.data.id')
 
           echo "3. Creating shopping item..."
-          ITEM_RESPONSE=$(curl -s -X POST "http://${MINIKUBE_IP}:30001/api/shopping-items" \
+          ITEM_RESPONSE=$(curl -s -X POST "http://${MINIKUBE_IP}:30003/api/shopping-items" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${TOKEN}" \
             -d "{\"description\":\"Chocolate\",\"quantity\":2,\"shoppingListId\":${LIST_ID},\"itemCategoryId\":${CATEGORY_ID},\"state\":\"ToDo\",\"price\":\"12.99\"}")
