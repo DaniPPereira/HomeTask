@@ -25,7 +25,7 @@ app.use(bodyParser.json());
 // API routes
 app.use('/api/shopping-lists', require('./controllers/ShoppingListController'));
 app.use('/api/shopping-items', require('./controllers/ShoppingItemController'));
-app.use('/api/item-categories', require('./controllers/ItemCategoryController'));
+app.use('/api/item-categories', require('./controllers/itemCategoryController'));
 
 // Swagger UI for API documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
