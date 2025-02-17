@@ -185,3 +185,35 @@ jobs:
           
           echo "\n=== Node Status ==="
           kubectl describe node minikube
+
+      - name: Verify Project Structure
+        run: |
+          echo "=== Verifying Project Structure ==="
+          
+          echo "\n=== User Service ==="
+          echo "Source directory:"
+          ls -la User_Service/src/
+          echo "\nPackage.json:"
+          cat User_Service/package.json
+          
+          echo "\n=== Shopping Service ==="
+          echo "Source directory:"
+          ls -la Shopping_Service/src/
+          echo "\nPackage.json:"
+          cat Shopping_Service/package.json
+          
+          echo "\n=== Home Task Service ==="
+          echo "Source directory:"
+          ls -la Home_Task_Service/src/
+          echo "\nPackage.json:"
+          cat Home_Task_Service/package.json
+          
+          echo "\n=== Testing Node.js imports ==="
+          cd User_Service && \
+          node -e "try { require('./src/app.js'); } catch(e) { console.error('User Service:', e); }"
+          
+          cd ../Shopping_Service && \
+          node -e "try { require('./src/app.js'); } catch(e) { console.error('Shopping Service:', e); }"
+          
+          cd ../Home_Task_Service && \
+          node -e "try { require('./src/app.js'); } catch(e) { console.error('Home Task Service:', e); }"
