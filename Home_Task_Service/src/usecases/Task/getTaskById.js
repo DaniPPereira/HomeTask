@@ -1,4 +1,4 @@
-const taskRepository = require('../../framework/db/postgres/taskRepository');
+const taskRepository = require('../../framework/db/postgres/TaskRepository');
 
 async function getTaskById({ id }) {
     try {

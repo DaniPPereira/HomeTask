@@ -1,4 +1,4 @@
-const taskRepository = require('../../framework/db/postgres/taskRepository');
+const taskRepository = require('../../framework/db/postgres/TaskRepository');
 const Task = require('../../framework/db/postgres/models/TaskModel');
 
 async function updateTask({ id, title, description, data, state, photo, homeId, userId, taskCategoryId }) {

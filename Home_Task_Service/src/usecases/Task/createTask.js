@@ -1,4 +1,4 @@
-const taskRepository = require('../../framework/db/postgres/taskRepository');
+const taskRepository = require('../../framework/db/postgres/TaskRepository');
 
 async function createTask({ title, description, data, state, photo, homeId, userId, taskCategoryId }) {
     if(!title || !description || !data || !homeId || !userId || !taskCategoryId) {
