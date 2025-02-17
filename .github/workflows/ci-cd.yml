@@ -47,23 +47,12 @@ jobs:
         include:
           - service_dir: User_Service
             image_name: user-service
-            dockerfile: Dockerfile
           - service_dir: Shopping_Service
             image_name: shopping-service
-            dockerfile: Dockerfile
           - service_dir: Home_Task_Service
             image_name: home-task-service
-            dockerfile: Dockerfile
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      
-      - name: Debug - Print Working Directory
-        run: |
-          pwd
-          ls -la
-          echo "Docker directory contents:"
-          ls -la ${{ matrix.service_dir }}/docker/
+      - uses: actions/checkout@v2
       
       - name: Login to Docker Hub
         uses: docker/login-action@v1
@@ -78,7 +67,6 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: ./${{ matrix.service_dir }}
-          file: ./${{ matrix.service_dir }}/docker/${{ matrix.dockerfile }}
           push: true
           tags: pereira6/${{ matrix.image_name }}:latest
 
@@ -90,9 +78,6 @@ jobs:
       
       - name: Set up kubectl
         uses: azure/setup-kubectl@v1
-      
-      - name: Set up Helm
-        uses: azure/setup-helm@v3
       
       - name: Set up Minikube
         uses: medyagh/setup-minikube@master
@@ -109,9 +94,9 @@ jobs:
           
           # Wait for databases to be ready
           echo "Waiting for databases to be ready..."
-          kubectl wait --for=condition=ready pod/postgres-user-0 --timeout=120s
-          kubectl wait --for=condition=ready pod/postgres-shopping-0 --timeout=120s
-          kubectl wait --for=condition=ready pod/postgres-hometask-0 --timeout=120s
+          kubectl wait --for=condition=ready pod -l app=postgres-user --timeout=120s
+          kubectl wait --for=condition=ready pod -l app=postgres-shopping --timeout=120s
+          kubectl wait --for=condition=ready pod -l app=postgres-hometask --timeout=120s
           
           # Deploy services
           echo "Deploying services..."
@@ -129,7 +114,6 @@ jobs:
           echo "Deployment complete. Showing status:"
           kubectl get pods
           kubectl get services
-
       - name: Test Services
         run: |
           # Esperar serviços estarem prontos
@@ -138,53 +122,75 @@ jobs:
           kubectl wait --for=condition=ready pod -l app=shopping-service --timeout=300s
           kubectl wait --for=condition=ready pod -l app=home-task-service --timeout=300s
           
-          # Pegar IP do minikube
-          MINIKUBE_IP=$(minikube ip)
+          # Diagnóstico de rede
+          echo "=== Network Diagnostics ==="
+          echo "1. Minikube Status:"
+          minikube status
           
-          echo "Testing services at: $MINIKUBE_IP"
+          echo "2. Node IP and Info:"
+          kubectl get nodes -o wide
           
-          # Teste User Service
-          echo "1. Testing User Service registration..."
-          curl -v -X POST "http://${MINIKUBE_IP}:30002/api/user/" \
+          echo "3. Service Details:"
+          kubectl describe services user-service shopping-service home-task-service
+          
+          echo "4. Pod Details:"
+          kubectl describe pods -l app=user-service
+          kubectl describe pods -l app=shopping-service
+          kubectl describe pods -l app=home-task-service
+          
+          # Tentar diferentes métodos de acesso
+          echo "=== Testing Services ==="
+          
+          echo "1. Via minikube service URLs:"
+          USER_URL=$(minikube service user-service --url)
+          SHOPPING_URL=$(minikube service shopping-service --url)
+          HOMETASK_URL=$(minikube service home-task-service --url)
+          
+          echo "User Service URL: $USER_URL"
+          echo "Shopping Service URL: $SHOPPING_URL"
+          echo "Home Task Service URL: $HOMETASK_URL"
+          
+          echo "2. Testing User Service..."
+          curl -v "$USER_URL/api/user/" \
             -H "Content-Type: application/json" \
             -d '{
               "name": "Test User",
               "email": "test@example.com",
               "password": "Test@123",
               "roles": "user"
-            }'
+            }' || true
           
-          # Teste Shopping Service
-          echo "2. Testing Shopping Service..."
-          curl -v -X POST "http://${MINIKUBE_IP}:30001/api/shopping/" \
+          echo "3. Testing Shopping Service..."
+          curl -v "$SHOPPING_URL/api/shopping/" \
             -H "Content-Type: application/json" \
             -d '{
               "name": "Test Item",
               "quantity": 1
-            }'
+            }' || true
           
-          # Teste Home Task Service
-          echo "3. Testing Home Task Service..."
-          curl -v -X POST "http://${MINIKUBE_IP}:30000/api/tasks/" \
+          echo "4. Testing Home Task Service..."
+          curl -v "$HOMETASK_URL/api/tasks/" \
             -H "Content-Type: application/json" \
             -d '{
               "title": "Test Task",
               "description": "Test Description"
-            }'
+            }' || true
           
-          # Mostrar status dos pods
-          echo "=== Pod Status ==="
-          kubectl get pods --all-namespaces
-          
-          echo "=== Service Status ==="
-          kubectl get services
-          
-          echo "=== Pod Logs ==="
+          # Verificar logs para diagnóstico
+          echo "=== Service Logs ==="
           echo "User Service Logs:"
-          kubectl logs -l app=user-service --tail=20
+          kubectl logs -l app=user-service
           
           echo "Shopping Service Logs:"
-          kubectl logs -l app=shopping-service --tail=20
+          kubectl logs -l app=shopping-service
           
           echo "Home Task Service Logs:"
-          kubectl logs -l app=home-task-service --tail=20
+          kubectl logs -l app=home-task-service
+          
+          # Verificar conectividade da rede
+          echo "=== Network Connectivity Test ==="
+          for pod in $(kubectl get pods -l 'app in (user-service,shopping-service,home-task-service)' -o name); do
+            echo "Testing network from $pod:"
+            kubectl exec $pod -- wget -qO- --timeout=2 http://localhost:3001/health || true
+            kubectl exec $pod -- wget -qO- --timeout=2 http://localhost:3002/health || true
+          done
