@@ -92,11 +92,11 @@ jobs:
           kubectl apply -f kubernetes/shopping-service/postgres.yaml
           kubectl apply -f kubernetes/home-task-service/postgres.yaml
           
-          # Wait for databases to be ready
+          # Wait for databases to be ready (ajustado os labels)
           echo "Waiting for databases to be ready..."
-          kubectl wait --for=condition=ready pod -l app=postgres-user --timeout=120s
-          kubectl wait --for=condition=ready pod -l app=postgres-shopping --timeout=120s
-          kubectl wait --for=condition=ready pod -l app=postgres-hometask --timeout=120s
+          kubectl wait --for=condition=ready pod/postgres-user-0 --timeout=120s
+          kubectl wait --for=condition=ready pod/postgres-shopping-0 --timeout=120s
+          kubectl wait --for=condition=ready pod/postgres-hometask-0 --timeout=120s
           
           # Deploy services
           echo "Deploying services..."
@@ -127,15 +127,31 @@ jobs:
           echo "All Pods:"
           kubectl get pods
           
+          # Start minikube tunnel
+          echo "Starting minikube tunnel..."
+          minikube tunnel &
+          sleep 10
+          
+          # Get service URLs
+          echo "Getting service URLs..."
+          USER_PORT=$(kubectl get service user-service -o jsonpath='{.spec.ports[0].port}')
+          SHOPPING_PORT=$(kubectl get service shopping-service -o jsonpath='{.spec.ports[0].port}')
+          HOMETASK_PORT=$(kubectl get service home-task-service -o jsonpath='{.spec.ports[0].port}')
+          
+          echo "Service ports:"
+          echo "User Service: ${USER_PORT}"
+          echo "Shopping Service: ${SHOPPING_PORT}"
+          echo "Home Task Service: ${HOMETASK_PORT}"
+          
           # Aguardar um pouco para os serviços estarem prontos
           echo "Waiting for services to be fully ready..."
           sleep 30
           
           echo "Testing User Service..."
-          curl -v "http://${MINIKUBE_IP}:30002/api/users" || true
+          curl -v "http://${MINIKUBE_IP}:${USER_PORT}/health" || true
           
           echo "Testing Shopping Service..."
-          curl -v "http://${MINIKUBE_IP}:30001/api/shopping" || true
+          curl -v "http://${MINIKUBE_IP}:${SHOPPING_PORT}/health" || true
           
           echo "Testing Home Task Service..."
-          curl -v "http://${MINIKUBE_IP}:30000/api/tasks" || true
+          curl -v "http://${MINIKUBE_IP}:${HOMETASK_PORT}/health" || true
