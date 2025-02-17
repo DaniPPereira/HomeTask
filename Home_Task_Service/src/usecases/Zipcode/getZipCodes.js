@@ -1,4 +1,3 @@
-'use strict';
 const zipCodeRepository = require('../../framework/db/postgres/ZipCodeRepository');
 
 async function getAllZipCodes() {
@@ -10,6 +9,4 @@ async function getAllZipCodes() {
     }
 }
 
-module.exports = {
-    getAllZipCodes,
-};
+module.exports =  getZipCodes;
