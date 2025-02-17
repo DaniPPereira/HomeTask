@@ -2,17 +2,17 @@ FROM node:18-alpine
 
 WORKDIR /usr/src/app
 
-# Copiar arquivos de dependências
+# Copiar package.json e package-lock.json primeiro
 COPY package*.json ./
 
 # Instalar dependências
 RUN npm install
 
-# Copiar o restante do código
-COPY . .
+# Copiar o código fonte
+COPY src/ ./src/
 
-# Expor a porta correta
+# Expor a porta
 EXPOSE 3002
 
-# Comando para rodar o serviço
-CMD ["npm", "start"] 
+# Comando para iniciar o serviço
+CMD ["node", "src/app.js"] 
