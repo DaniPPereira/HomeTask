@@ -9,10 +9,9 @@ const { swaggerDocs, swaggerUi } = require('../public/swagger');
 require('dotenv').config();
 
 // Import routes
-const shoppingListRoutes = require('./controllers/shoppingListController');
-const shoppingItemRoutes = require('./controllers/shoppingItemController');
-const itemCategoryRoutes = require('./controllers/itemCategoryController');
-const shoppingRoutes = require('./routes/shoppingRoutes');
+const shoppingListRoutes = require('./controllers/ShoppingListController');
+const shoppingItemRoutes = require('./controllers/ShoppingItemController');
+const itemCategoryRoutes = require('./controllers/ItemCategoryController');
 
 // Initialize Express app
 const app = express();
@@ -34,7 +33,6 @@ app.use(bodyParser.json()); // Parse application/json
 app.use('/api/shopping-lists', shoppingListRoutes); // Shopping List routes
 app.use('/api/shopping-items', shoppingItemRoutes); // Shopping Item routes
 app.use('/api/item-categories', itemCategoryRoutes); // Item Category routes
-app.use('/api/shopping', shoppingRoutes);
 
 // Swagger UI for API documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));

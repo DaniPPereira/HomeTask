@@ -6,11 +6,6 @@ const path = require('path');
 const bodyParser = require('body-parser');
 // For connecting to the database
 const sequelize = require('./framework/db/postgres/config');
-// Swagger UI for API documentation
-//const { swaggerDocs, swaggerUi } = require('../public/swagger');
-// Swagger API definition
-//const swaggerDocument = require('../public/swagger.json');
-// Load environment variables from .env
 
 const UserRoutes = require('./controllers/UserController');
 
@@ -39,8 +34,6 @@ app.get('/health', (req, res) => {
 // API routes
 app.use('/api/user', UserRoutes); // Shopping List routes
 
-// Swagger UI for API documentation
-//app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 
 // Handle errors
